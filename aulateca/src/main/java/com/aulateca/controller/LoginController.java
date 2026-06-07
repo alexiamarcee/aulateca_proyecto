@@ -26,18 +26,4 @@ public class LoginController {
             return new AuthResult(null, e.getMessage());
         }
     }
-
-    /** Registra un usuario nuevo con rol ALUMNO e inicia sesión automáticamente. */
-    public AuthResult registrar(String nombre, String apellidos, String email,
-                                String password, String confirmarPassword) {
-        try {
-            if (!password.equals(confirmarPassword)) {
-                return new AuthResult(null, "Las contraseñas no coinciden.");
-            }
-            userService.crear(nombre, apellidos, email, password, User.Rol.ALUMNO);
-            return iniciarSesion(email, password);
-        } catch (AulatecaException e) {
-            return new AuthResult(null, e.getMessage());
-        }
-    }
 }
