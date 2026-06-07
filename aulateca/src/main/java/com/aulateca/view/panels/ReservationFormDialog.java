@@ -89,6 +89,9 @@ public class ReservationFormDialog extends JDialog {
         cmbUsuario = UIFactory.comboBox();
         usuarios.forEach(cmbUsuario::addItem);
         cmbUsuario.setSelectedItem(usuarioActual);
+        if (!usuarioActual.puedeGestionarReservasAjena()) {
+            cmbUsuario.setEnabled(false);
+        }
 
         cmbRecurso = UIFactory.comboBox();
         recursos.forEach(cmbRecurso::addItem);
@@ -185,7 +188,9 @@ public class ReservationFormDialog extends JDialog {
 
     /** Delega el guardado al controlador. */
     private void guardar() {
-        User      usuario = (User)     cmbUsuario.getSelectedItem();
+        User usuario = usuarioActual.puedeGestionarReservasAjena()
+            ? (User) cmbUsuario.getSelectedItem()
+            : usuarioActual;
         Resource  recurso = (Resource) cmbRecurso.getSelectedItem();
         TimeSlot  franja  = (TimeSlot) cmbFranja.getSelectedItem();
         LocalDate fecha   = getFecha();
@@ -193,8 +198,8 @@ public class ReservationFormDialog extends JDialog {
         String motivoFinal = motivo.isEmpty() ? null : motivo;
 
         var error = (reserva == null)
-            ? controller.crearReserva(usuario, recurso, fecha, franja, motivoFinal)
-            : controller.modificarReserva(reserva.getId(), usuario, recurso, fecha, franja, motivoFinal);
+            ? controller.crearReserva(usuarioActual, usuario, recurso, fecha, franja, motivoFinal)
+            : controller.modificarReserva(usuarioActual, reserva.getId(), usuario, recurso, fecha, franja, motivoFinal);
 
         if (error.isPresent()) {
             UIFactory.showError(this, error.get());

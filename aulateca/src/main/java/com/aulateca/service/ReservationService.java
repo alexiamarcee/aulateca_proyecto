@@ -18,8 +18,9 @@ public class ReservationService {
     private final TimeSlotDAO    timeSlotDAO    = new TimeSlotDAO();
 
     /** Crea una reserva tras validar usuario, recurso, fecha y disponibilidad. */
-    public Reservation crearReserva(User usuario, Resource recurso, LocalDate fecha,
+    public Reservation crearReserva(User operador, User usuario, Resource recurso, LocalDate fecha,
                                      TimeSlot franja, String motivo) {
+        validarPermisoReserva(operador, usuario);
         validarUsuario(usuario);
         validarRecurso(recurso);
         validarFecha(fecha);
@@ -36,7 +37,7 @@ public class ReservationService {
     }
 
     /** Modifica una reserva existente aplicando las reglas de negocio. */
-    public Reservation modificarReserva(Long id, User usuario, Resource recurso,
+    public Reservation modificarReserva(User operador, Long id, User usuario, Resource recurso,
                                          LocalDate fecha, TimeSlot franja, String motivo) {
         Reservation reserva = reservationDAO.buscarPorId(id)
             .orElseThrow(() -> new ValidationException("Reserva no encontrada con ID: " + id));
@@ -45,6 +46,9 @@ public class ReservationService {
             throw new BusinessException("No se puede modificar una reserva cancelada.");
         }
 
+        validarPermisoReserva(operador, reserva.getUsuario());
+        validarPermisoReserva(operador, usuario);
+        validarUsuario(usuario);
         validarRecurso(recurso);
         validarFecha(fecha);
         validarFranja(franja);
@@ -64,9 +68,11 @@ public class ReservationService {
     }
 
     /** Cancela una reserva confirmada. */
-    public void cancelarReserva(Long id) {
+    public void cancelarReserva(User operador, Long id) {
         Reservation reserva = reservationDAO.buscarPorId(id)
             .orElseThrow(() -> new ValidationException("Reserva no encontrada con ID: " + id));
+
+        validarPermisoReserva(operador, reserva.getUsuario());
 
         if (reserva.getEstado() == Reservation.Estado.CANCELADA) {
             throw new BusinessException("La reserva ya está cancelada.");
@@ -158,6 +164,16 @@ public class ReservationService {
         ValidacionUtil.requerirNoNulo(usuario, "Debe seleccionar un usuario para la reserva.");
         if (!usuario.isActivo()) {
             throw new ValidationException("El usuario no está activo en el sistema.");
+        }
+    }
+
+    /** Solo admin y profesor pueden gestionar reservas de otros usuarios. */
+    private void validarPermisoReserva(User operador, User usuarioReserva) {
+        ValidacionUtil.requerirNoNulo(operador, "Operador no identificado.");
+        ValidacionUtil.requerirNoNulo(usuarioReserva, "Debe seleccionar un usuario para la reserva.");
+        if (!operador.puedeGestionarReservasAjena()
+                && !operador.getId().equals(usuarioReserva.getId())) {
+            throw new BusinessException("Solo puedes crear o modificar reservas propias.");
         }
     }
 

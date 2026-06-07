@@ -70,6 +70,11 @@ public class User {
         return nombre + " " + apellidos;
     }
 
+    /** Indica si el usuario puede crear o modificar reservas de otros usuarios. */
+    public boolean puedeGestionarReservasAjena() {
+        return rol == Rol.ADMIN || rol == Rol.PROFESOR;
+    }
+
     @Override
     public String toString() {
         return getNombreCompleto() + " (" + email + ")";

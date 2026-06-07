@@ -151,7 +151,7 @@ public class ReservationsPanel extends JPanel {
     /** Solicita las reservas al controlador y actualiza la tabla. */
     private void cargarReservas() {
         modelo.setRowCount(0);
-        var resultado = controller.listarReservas(cmbFiltro.getSelectedIndex());
+        var resultado = controller.listarReservas(usuarioActual, cmbFiltro.getSelectedIndex());
         if (resultado.esError()) {
             UIFactory.showError(this, resultado.error());
             reservasActuales = List.of();
@@ -182,11 +182,15 @@ public class ReservationsPanel extends JPanel {
             return;
         }
 
+        List<User> usuariosForm = usuarioActual.puedeGestionarReservasAjena()
+            ? usuarios.datos()
+            : List.of(usuarioActual);
+
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame f ? f : null;
         ReservationFormDialog dlg = new ReservationFormDialog(
             frame, reserva, usuarioActual,
-            recursos.datos(), usuarios.datos(), franjas.datos(), controller);
+            recursos.datos(), usuariosForm, franjas.datos(), controller);
         dlg.setVisible(true);
         if (dlg.isSaved()) cargarReservas();
     }
@@ -201,7 +205,7 @@ public class ReservationsPanel extends JPanel {
         }
         if (UIFactory.showConfirm(this, "¿Cancelar la reserva de «" + r.getRecurso().getNombre()
                 + "» el " + r.getFecha() + "?")) {
-            controller.cancelarReserva(r.getId()).ifPresentOrElse(
+            controller.cancelarReserva(usuarioActual, r.getId()).ifPresentOrElse(
                 msg -> UIFactory.showError(this, msg),
                 () -> { UIFactory.showSuccess(this, "Reserva cancelada."); cargarReservas(); }
             );
