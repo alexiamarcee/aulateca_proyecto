@@ -150,8 +150,8 @@ public class MainFrame extends JFrame {
         addNavItem(sidebar, "🏠", "Inicio",            () -> mostrarPanel(new DashboardPanel(usuarioActual)));
         addNavItem(sidebar, "📅", "Reservas",           () -> mostrarPanel(new ReservationsPanel(usuarioActual)));
         addNavItem(sidebar, "🔍", "Disponibilidad",     () -> mostrarPanel(new AvailabilityPanel()));
-        
-        if (usuarioActual.getRol() == User.Rol.ADMIN) {
+
+        if (usuarioActual.getRol() == User.Rol.ADMIN || usuarioActual.getRol() == User.Rol.PROFESOR) {
 
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarSeparator(sidebar);
@@ -162,8 +162,9 @@ public class MainFrame extends JFrame {
             addNavItem(sidebar, "📁", "Tipos de recurso",   () -> mostrarPanel(new ResourceTypesPanel()));
             addNavItem(sidebar, "🔴", "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
             addNavItem(sidebar, "⏰", "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
-
+        }
         
+        if (usuarioActual.getRol() == User.Rol.ADMIN) {
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarSeparator(sidebar);
             sidebar.add(Box.createVerticalStrut(8));
