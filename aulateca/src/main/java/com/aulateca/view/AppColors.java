@@ -61,4 +61,8 @@ public class AppColors {
     public static final Color ACCENT      = CHIP_GREEN;
     public static final Color ACCENT_DARK = new Color(0x8BC49B);
     public static final Color BG_LIGHT    = BG_APP;
+
+    public static String toHex(Color c) {
+        return String.format("#%06X", c.getRGB() & 0xFFFFFF);
+    }
 }

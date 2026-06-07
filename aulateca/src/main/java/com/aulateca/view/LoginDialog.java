@@ -49,8 +49,8 @@ public class LoginDialog extends JDialog {
         logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
 
         JLabel logo = new JLabel("<html>" +
-            "<span style='color:#1A73E8;font-size:26px;font-family:Segoe UI'>Aula</span>" +
-            "<span style='color:#0F9D58;font-size:26px;font-family:Segoe UI'>teca</span>" +
+            "<span style='color:" + AppColors.toHex(AppColors.PRIMARY_DARK) + ";font-size:26px;font-family:Segoe UI'><b>Aula</b></span>" +
+            "<span style='color:" + AppColors.toHex(AppColors.PRIMARY) + ";font-size:26px;font-family:Segoe UI'><b>teca</b></span>" +
             "</html>");
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
 

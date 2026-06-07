@@ -21,7 +21,7 @@ public class MainFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Aulateca");
+        setTitle("AULATECA");
         setSize(1280, 800);
         setMinimumSize(new Dimension(960, 600));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -57,8 +57,8 @@ public class MainFrame extends JFrame {
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
         JLabel logo = new JLabel("<html>" +
-            "<span style='font-family:Segoe UI;font-size:20px;color:#1A73E8'><b>Aula</b></span>" +
-            "<span style='font-family:Segoe UI;font-size:20px;color:#0F9D58'><b>teca</b></span>" +
+            "<span style='font-family:Segoe UI;font-size:20px;color:" + AppColors.toHex(AppColors.PRIMARY_DARK) + "'><b>Aula</b></span>" +
+            "<span style='font-family:Segoe UI;font-size:20px;color:" + AppColors.toHex(AppColors.PRIMARY) + "'><b>teca</b></span>" +
             "</html>");
         left.add(logo);
         bar.add(left, BorderLayout.WEST);
