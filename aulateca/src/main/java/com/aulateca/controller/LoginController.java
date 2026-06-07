@@ -14,7 +14,7 @@ public class LoginController {
     /** Resultado del intento de autenticación. */
     public record AuthResult(User usuario, String error) {}
 
-    /** Intenta autenticar al usuario con email y contraseña. */
+    /** Intenta autenticar al usuario con email y contraseña (verificación BCrypt en servicio). */
     public AuthResult iniciarSesion(String email, String password) {
         try {
             Optional<User> usuario = userService.autenticar(email, password);

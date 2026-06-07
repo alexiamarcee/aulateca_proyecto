@@ -2,6 +2,8 @@ package com.aulateca.util;
 
 import com.aulateca.dao.*;
 import com.aulateca.model.*;
+import com.aulateca.util.PasswordUtil;
+
 import java.time.LocalTime;
 
 /** Carga datos de ejemplo si la BD está vacía. */
@@ -69,11 +71,16 @@ public class DataInitializer {
         slotDAO.guardar(new TimeSlot("Tarde 1ª", LocalTime.of(15, 0), LocalTime.of(16, 0), 8));
         slotDAO.guardar(new TimeSlot("Tarde 2ª", LocalTime.of(16, 0), LocalTime.of(17, 0), 9));
 
-        userDAO.guardar(new User("Admin", "Sistema", "admin@aulateca.es", "admin123", User.Rol.ADMIN));
-        userDAO.guardar(new User("María", "García López", "mgarcia@aulateca.es", "prof123", User.Rol.PROFESOR));
-        userDAO.guardar(new User("Carlos", "Martínez Ruiz", "cmartinez@aulateca.es", "prof123", User.Rol.PROFESOR));
-        userDAO.guardar(new User("Ana", "Fernández Pérez", "afernandez@aulateca.es", "alumno123", User.Rol.ALUMNO));
-        userDAO.guardar(new User("Luis", "Sánchez Gómez", "lsanchez@aulateca.es", "alumno123", User.Rol.ALUMNO));
+        userDAO.guardar(new User("Admin", "Sistema", "admin@aulateca.es",
+            PasswordUtil.hash("admin123"), User.Rol.ADMIN));
+        userDAO.guardar(new User("María", "García López", "mgarcia@aulateca.es",
+            PasswordUtil.hash("prof123"), User.Rol.PROFESOR));
+        userDAO.guardar(new User("Carlos", "Martínez Ruiz", "cmartinez@aulateca.es",
+            PasswordUtil.hash("prof123"), User.Rol.PROFESOR));
+        userDAO.guardar(new User("Ana", "Fernández Pérez", "afernandez@aulateca.es",
+            PasswordUtil.hash("alumno123"), User.Rol.ALUMNO));
+        userDAO.guardar(new User("Luis", "Sánchez Gómez", "lsanchez@aulateca.es",
+            PasswordUtil.hash("alumno123"), User.Rol.ALUMNO));
 
         System.out.println("[Aulateca] Datos de ejemplo creados correctamente.");
     }

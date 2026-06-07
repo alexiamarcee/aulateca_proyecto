@@ -65,8 +65,7 @@ public class UsersPanel extends JPanel {
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         add(sp, BorderLayout.CENTER);
 
-        JLabel hint = new JLabel("  Las contraseñas se almacenan en texto plano (proyecto académico). " +
-                "En producción se usaría hashing (BCrypt).");
+        JLabel hint = new JLabel("  Las contraseñas se almacenan con hash BCrypt; nunca se muestran en texto plano.");
         hint.setFont(UIFactory.FONT_SMALL);
         hint.setForeground(AppColors.TEXT_GRAY);
         add(hint, BorderLayout.SOUTH);
@@ -117,7 +116,6 @@ public class UsersPanel extends JPanel {
             txtNombre.setText(usuario.getNombre());
             txtApellidos.setText(usuario.getApellidos());
             txtEmail.setText(usuario.getEmail());
-            txtPassword.setText(usuario.getPassword());
             cmbRol.setSelectedItem(usuario.getRol());
             chkActivo.setSelected(usuario.isActivo());
         }
@@ -135,7 +133,8 @@ public class UsersPanel extends JPanel {
         gbc.gridy = 3;  form.add(txtApellidos, gbc);
         gbc.gridy = 4;  form.add(UIFactory.formLabel("Email *"), gbc);
         gbc.gridy = 5;  form.add(txtEmail, gbc);
-        gbc.gridy = 6;  form.add(UIFactory.formLabel("Contraseña *"), gbc);
+        gbc.gridy = 6;  form.add(UIFactory.formLabel(
+            esNuevo ? "Contraseña *" : "Nueva contraseña (opcional)"), gbc);
         gbc.gridy = 7;  form.add(txtPassword, gbc);
         gbc.gridy = 8;  form.add(UIFactory.formLabel("Rol *"), gbc);
         gbc.gridy = 9;  form.add(cmbRol, gbc);

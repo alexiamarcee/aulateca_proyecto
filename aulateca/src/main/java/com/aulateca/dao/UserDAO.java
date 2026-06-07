@@ -26,21 +26,6 @@ public class UserDAO extends GenericDAO<User, Long> {
         }
     }
 
-    public Optional<User> autenticar(String email, String password) {
-        EntityManager em = HibernateUtil.getEntityManager();
-        try {
-            List<User> resultado = em.createQuery(
-                "SELECT u FROM User u WHERE u.email = :email AND u.password = :pass AND u.activo = true",
-                User.class)
-                .setParameter("email", email)
-                .setParameter("pass", password)
-                .getResultList();
-            return resultado.isEmpty() ? Optional.empty() : Optional.of(resultado.get(0));
-        } finally {
-            em.close();
-        }
-    }
-
     public List<User> buscarActivos() {
         EntityManager em = HibernateUtil.getEntityManager();
         try {
