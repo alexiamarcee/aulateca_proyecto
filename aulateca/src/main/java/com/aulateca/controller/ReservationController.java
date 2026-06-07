@@ -17,7 +17,7 @@ public class ReservationController {
     public ControllerUtil.Resultado<List<Reservation>> listarReservas(User operador, int filtroIndice) {
         return ControllerUtil.ejecutarConsulta(() -> {
             List<Reservation> lista = switch (filtroIndice) {
-                case 1  -> reservationService.obtenerProximas();
+                case 1  -> reservationService.obtenerEstaSemana();
                 case 2  -> reservationService.obtenerPorFecha(LocalDate.now());
                 case 3  -> {
                     LocalDate ini = LocalDate.now().withDayOfMonth(1);

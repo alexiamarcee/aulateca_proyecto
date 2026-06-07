@@ -39,7 +39,7 @@ public class DashboardPanel extends JPanel {
         fecha.setFont(new Font("Segoe UI", Font.PLAIN, 28));
         fecha.setForeground(AppColors.TEXT_PRIMARY);
 
-        JLabel saludo = new JLabel("Hola, " + usuario.getNombre());
+        JLabel saludo = new JLabel("Bienvenido, " + usuario.getNombre());
         saludo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         saludo.setForeground(AppColors.TEXT_SECONDARY);
 
@@ -51,10 +51,10 @@ public class DashboardPanel extends JPanel {
         headerText.add(fecha);
 
         header.add(headerText, BorderLayout.WEST);
-        add(header, BorderLayout.NORTH);
 
         var statsResult = controller.obtenerEstadisticas();
         if (statsResult.esError()) {
+            add(header, BorderLayout.NORTH);
             add(new JLabel(statsResult.error(), SwingConstants.CENTER), BorderLayout.CENTER);
             return;
         }
@@ -62,19 +62,27 @@ public class DashboardPanel extends JPanel {
         DashboardStats stats = statsResult.datos();
         JPanel statsRow = new JPanel(new GridLayout(1, 4, 16, 0));
         statsRow.setOpaque(false);
-        statsRow.add(statCard("Recursos totales",  String.valueOf(stats.totalRecursos()),    AppColors.PRIMARY,     "🏫"));
-        statsRow.add(statCard("Reservas hoy",       String.valueOf(stats.reservasHoy()),     AppColors.CHIP_GREEN,  "📅"));
-        statsRow.add(statCard("Próximas reservas",  String.valueOf(stats.proximasReservas()), AppColors.CHIP_YELLOW, "✅"));
-        statsRow.add(statCard("Usuarios activos",   String.valueOf(stats.usuariosActivos()),  AppColors.CHIP_PURPLE, "👥"));
-        add(statsRow, BorderLayout.CENTER);
+        statsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 88));
+        statsRow.add(statCard("Recursos totales",  String.valueOf(stats.totalRecursos()),    AppColors.PRIMARY));
+        statsRow.add(statCard("Reservas hoy",       String.valueOf(stats.reservasHoy()),     AppColors.CHIP_GREEN));
+        statsRow.add(statCard("Reservas esta semana", String.valueOf(stats.reservasEstaSemana()), AppColors.CHIP_YELLOW));
+        statsRow.add(statCard("Usuarios activos",   String.valueOf(stats.usuariosActivos()),  AppColors.CHIP_PURPLE));
+
+        JPanel topSection = new JPanel();
+        topSection.setOpaque(false);
+        topSection.setLayout(new BoxLayout(topSection, BoxLayout.Y_AXIS));
+        topSection.add(header);
+        topSection.add(Box.createVerticalStrut(24));
+        topSection.add(statsRow);
+        add(topSection, BorderLayout.NORTH);
 
         var reservasResult = controller.reservasDeHoy();
         if (!reservasResult.esError()) {
-            add(buildTableCard(reservasResult.datos()), BorderLayout.SOUTH);
+            add(buildTableCard(reservasResult.datos()), BorderLayout.CENTER);
         }
     }
 
-    private JPanel statCard(String label, String value, Color accentColor, String icon) {
+    private JPanel statCard(String label, String value, Color accentColor) {
         JPanel card = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -87,14 +95,11 @@ public class DashboardPanel extends JPanel {
             }
         };
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel iconLbl = new JLabel(icon);
-        iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
-        iconLbl.setFont(UIFactory.emojiFont(20));
+        card.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 88));
 
         JLabel valueLbl = new JLabel(value);
-        valueLbl.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        valueLbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
         valueLbl.setForeground(accentColor);
 
         JLabel labelLbl = new JLabel(label);
@@ -104,10 +109,8 @@ public class DashboardPanel extends JPanel {
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.add(iconLbl);
-        content.add(Box.createVerticalStrut(8));
         content.add(valueLbl);
-        content.add(Box.createVerticalStrut(4));
+        content.add(Box.createVerticalStrut(2));
         content.add(labelLbl);
         card.add(content, BorderLayout.CENTER);
         return card;
@@ -125,7 +128,6 @@ public class DashboardPanel extends JPanel {
         };
         card.setOpaque(false);
         card.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        card.setPreferredSize(new Dimension(0, 280));
 
         JPanel cardHeader = new JPanel(new BorderLayout());
         cardHeader.setOpaque(false);

@@ -44,14 +44,14 @@ public class ReservationsPanel extends JPanel {
         toolbar.setOpaque(false);
 
         cmbFiltro = new JComboBox<>(new String[]{
-            "Todas", "Próximas", "Hoy", "Este mes"});
+            "Todas", "Esta semana", "Hoy", "Este mes"});
         cmbFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbFiltro.setPreferredSize(new Dimension(150, 36));
         cmbFiltro.addActionListener(e -> cargarReservas());
 
-        JButton btnRefrescar  = UIFactory.secondaryButton("↻  Actualizar");
-        JButton btnCancelar   = UIFactory.secondaryButton("✕  Cancelar reserva");
-        JButton btnNueva      = UIFactory.primaryButton("+ Nueva reserva");
+        JButton btnRefrescar  = UIFactory.secondaryButton("↻");
+        JButton btnCancelar   = UIFactory.secondaryButton("Cancelar reserva");
+        JButton btnNueva      = UIFactory.primaryButton("Nueva reserva");
 
         btnRefrescar.addActionListener(e -> cargarReservas());
         btnCancelar.addActionListener(e -> cancelarSeleccionada());
@@ -141,11 +141,6 @@ public class ReservationsPanel extends JPanel {
         scroll.getViewport().setBackground(AppColors.BG_WHITE);
         card.add(scroll, BorderLayout.CENTER);
         add(card, BorderLayout.CENTER);
-
-        JLabel hint = new JLabel("  Doble clic para ver el detalle · Selecciona una fila y pulsa «Cancelar reserva» para anularla");
-        hint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        hint.setForeground(AppColors.TEXT_HINT);
-        add(hint, BorderLayout.SOUTH);
     }
 
     /** Solicita las reservas al controlador y actualiza la tabla. */
@@ -174,11 +169,18 @@ public class ReservationsPanel extends JPanel {
     }
 
     private void abrirFormulario(Reservation reserva) {
-        var recursos  = controller.listarRecursos();
-        var usuarios  = controller.listarUsuariosActivos();
-        var franjas   = controller.listarFranjas();
+        abrirFormulario(this, usuarioActual, reserva, this::cargarReservas);
+    }
+
+    /** Abre el formulario de reserva desde cualquier pantalla. */
+    public static void abrirFormulario(Component parent, User usuarioActual,
+                                       Reservation reserva, Runnable alGuardar) {
+        ReservationController ctrl = new ReservationController();
+        var recursos = ctrl.listarRecursos();
+        var usuarios = ctrl.listarUsuariosActivos();
+        var franjas  = ctrl.listarFranjas();
         if (recursos.esError() || usuarios.esError() || franjas.esError()) {
-            UIFactory.showError(this, "No se pudieron cargar los datos del formulario.");
+            UIFactory.showError(parent, "No se pudieron cargar los datos del formulario.");
             return;
         }
 
@@ -186,13 +188,13 @@ public class ReservationsPanel extends JPanel {
             ? usuarios.datos()
             : List.of(usuarioActual);
 
-        Window w = SwingUtilities.getWindowAncestor(this);
+        Window w = SwingUtilities.getWindowAncestor(parent);
         Frame frame = w instanceof Frame f ? f : null;
         ReservationFormDialog dlg = new ReservationFormDialog(
             frame, reserva, usuarioActual,
-            recursos.datos(), usuariosForm, franjas.datos(), controller);
+            recursos.datos(), usuariosForm, franjas.datos(), ctrl);
         dlg.setVisible(true);
-        if (dlg.isSaved()) cargarReservas();
+        if (dlg.isSaved() && alGuardar != null) alGuardar.run();
     }
 
     private void cancelarSeleccionada() {
@@ -216,7 +218,7 @@ public class ReservationsPanel extends JPanel {
         int row = tabla.getSelectedRow();
         if (row < 0) return;
         Reservation r = reservasActuales.get(row);
-        String msg = "<html><b>Reserva #" + r.getId() + "</b><br><br>"
+        String msg = "<html><b>Detalle de la reserva</b><br><br>"
             + "<b>Recurso:</b> " + r.getRecurso().getNombre() + "<br>"
             + "<b>Tipo:</b> "    + r.getRecurso().getTipo().getNombre() + "<br>"
             + "<b>Fecha:</b> "   + r.getFecha() + "<br>"

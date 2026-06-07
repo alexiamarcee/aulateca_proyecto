@@ -3,7 +3,9 @@ package com.aulateca.dao;
 import com.aulateca.model.*;
 import com.aulateca.util.HibernateUtil;
 import jakarta.persistence.EntityManager;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 /** Acceso a datos de reservas. */
@@ -131,20 +133,11 @@ public class ReservationDAO extends GenericDAO<Reservation, Long> {
         }
     }
 
-    public List<Reservation> buscarProximas() {
-        EntityManager em = HibernateUtil.getEntityManager();
-        try {
-            return em.createQuery(
-                "SELECT r FROM Reservation r " +
-                "JOIN FETCH r.usuario JOIN FETCH r.recurso JOIN FETCH r.franjaHoraria " +
-                "WHERE r.fecha >= :hoy AND r.estado = :estado " +
-                "ORDER BY r.fecha, r.franjaHoraria.orden",
-                Reservation.class)
-                .setParameter("hoy", LocalDate.now())
-                .setParameter("estado", Reservation.Estado.CONFIRMADA)
-                .getResultList();
-        } finally {
-            em.close();
-        }
+    /** Reservas confirmadas de la semana actual (lunes a domingo). */
+    public List<Reservation> buscarEstaSemana() {
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicio = hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate fin    = hoy.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        return buscarEntreFechas(inicio, fin);
     }
 }

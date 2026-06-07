@@ -4,6 +4,6 @@ package com.aulateca.service.dto;
 public record DashboardStats(
     long totalRecursos,
     long reservasHoy,
-    long proximasReservas,
+    long reservasEstaSemana,
     long usuariosActivos
 ) {}

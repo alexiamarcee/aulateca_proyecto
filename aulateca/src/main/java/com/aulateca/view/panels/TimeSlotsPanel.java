@@ -28,13 +28,13 @@ public class TimeSlotsPanel extends JPanel {
     private void initUI() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(UIFactory.sectionTitle("⏰  Franjas Horarias"), BorderLayout.WEST);
+        top.add(UIFactory.sectionTitle("Franjas horarias"), BorderLayout.WEST);
 
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
-        JButton btnNuevo    = UIFactory.accentButton("+ Nueva franja");
-        JButton btnEditar   = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnNuevo    = UIFactory.accentButton("Nueva franja");
+        JButton btnEditar   = UIFactory.primaryButton("Editar");
+        JButton btnEliminar = UIFactory.dangerButton("Eliminar");
         btnNuevo.addActionListener(e -> abrirForm(null));
         btnEditar.addActionListener(e -> {
             int r = tabla.getSelectedRow();
@@ -61,11 +61,6 @@ public class TimeSlotsPanel extends JPanel {
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         add(sp, BorderLayout.CENTER);
-
-        JLabel hint = new JLabel("  El orden determina la secuencia en la que se muestran las franjas (menor número = primera).");
-        hint.setFont(UIFactory.FONT_SMALL);
-        hint.setForeground(AppColors.TEXT_GRAY);
-        add(hint, BorderLayout.SOUTH);
     }
 
     private void cargarDatos() {
@@ -89,8 +84,6 @@ public class TimeSlotsPanel extends JPanel {
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame f  = w instanceof Frame ? (Frame) w : null;
         JDialog dlg = new JDialog(f, slot == null ? "Nueva franja" : "Editar franja", true);
-        dlg.setSize(420, 360);
-        dlg.setLocationRelativeTo(f);
 
         JPanel root = new JPanel(new BorderLayout(0, 12));
         root.setBorder(BorderFactory.createEmptyBorder(20, 24, 16, 24));
@@ -157,6 +150,14 @@ public class TimeSlotsPanel extends JPanel {
         });
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
+
+        dlg.pack();
+        Dimension tamMin = new Dimension(480, 520);
+        if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
+            dlg.setSize(tamMin);
+        }
+        dlg.setMinimumSize(tamMin);
+        dlg.setLocationRelativeTo(f);
         dlg.setVisible(true);
     }
 

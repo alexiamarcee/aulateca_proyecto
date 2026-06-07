@@ -143,8 +143,8 @@ public class ReservationService {
         return reservationDAO.buscarEntreFechas(desde, hasta);
     }
 
-    public List<Reservation> obtenerProximas() {
-        return reservationDAO.buscarProximas();
+    public List<Reservation> obtenerEstaSemana() {
+        return reservationDAO.buscarEstaSemana();
     }
 
     /** Datos necesarios para el formulario de reserva. */

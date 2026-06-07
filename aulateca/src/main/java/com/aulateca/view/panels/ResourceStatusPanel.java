@@ -27,13 +27,13 @@ public class ResourceStatusPanel extends JPanel {
     private void initUI() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(UIFactory.sectionTitle("🔴  Estados de Recursos"), BorderLayout.WEST);
+        top.add(UIFactory.sectionTitle("Estados de los recursos"), BorderLayout.WEST);
 
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
-        JButton btnNuevo   = UIFactory.accentButton("+ Nuevo estado");
-        JButton btnEditar  = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnNuevo   = UIFactory.accentButton("Nuevo estado");
+        JButton btnEditar  = UIFactory.primaryButton("Editar");
+        JButton btnEliminar = UIFactory.dangerButton("Eliminar");
         btnNuevo.addActionListener(e -> abrirForm(null));
         btnEditar.addActionListener(e -> { int r = tabla.getSelectedRow(); if (r >= 0) abrirForm(lista.get(r)); });
         btnEliminar.addActionListener(e -> eliminar());
@@ -46,6 +46,10 @@ public class ResourceStatusPanel extends JPanel {
         };
         tabla = new JTable(modelo);
         UIFactory.styleTable(tabla);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(140);
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(420);
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(100);
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         add(sp, BorderLayout.CENTER);
@@ -71,8 +75,6 @@ public class ResourceStatusPanel extends JPanel {
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame f  = w instanceof Frame ? (Frame) w : null;
         JDialog dlg = new JDialog(f, estado == null ? "Nuevo estado" : "Editar estado", true);
-        dlg.setSize(400, 320);
-        dlg.setLocationRelativeTo(f);
 
         JPanel root = new JPanel(new BorderLayout(0, 12));
         root.setBorder(BorderFactory.createEmptyBorder(20, 24, 16, 24));
@@ -118,6 +120,14 @@ public class ResourceStatusPanel extends JPanel {
         });
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
+
+        dlg.pack();
+        Dimension tamMin = new Dimension(480, 380);
+        if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
+            dlg.setSize(tamMin);
+        }
+        dlg.setMinimumSize(tamMin);
+        dlg.setLocationRelativeTo(f);
         dlg.setVisible(true);
     }
 

@@ -21,7 +21,7 @@ public class DashboardService {
         return new DashboardStats(
             resourceDAO.contar(),
             reservationDAO.buscarPorFecha(LocalDate.now()).size(),
-            reservationDAO.buscarProximas().size(),
+            reservationDAO.buscarEstaSemana().size(),
             userDAO.buscarActivos().size()
         );
     }

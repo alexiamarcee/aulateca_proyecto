@@ -27,13 +27,13 @@ public class UsersPanel extends JPanel {
     private void initUI() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(UIFactory.sectionTitle("👥  Gestión de Usuarios"), BorderLayout.WEST);
+        top.add(UIFactory.sectionTitle("Gestión de usuarios"), BorderLayout.WEST);
 
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
-        JButton btnNuevo    = UIFactory.accentButton("+ Nuevo usuario");
-        JButton btnEditar   = UIFactory.primaryButton("✏ Editar");
-        JButton btnDesactivar = UIFactory.dangerButton("⊘ Desactivar");
+        JButton btnNuevo    = UIFactory.accentButton("Nuevo usuario");
+        JButton btnEditar   = UIFactory.primaryButton("Editar");
+        JButton btnDesactivar = UIFactory.dangerButton("Desactivar");
         JButton btnRefrescar  = UIFactory.secondaryButton("↻");
 
         btnNuevo.addActionListener(e -> abrirForm(null));
@@ -64,11 +64,6 @@ public class UsersPanel extends JPanel {
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         add(sp, BorderLayout.CENTER);
-
-        JLabel hint = new JLabel("  Las contraseñas se almacenan con hash BCrypt; nunca se muestran en texto plano.");
-        hint.setFont(UIFactory.FONT_SMALL);
-        hint.setForeground(AppColors.TEXT_GRAY);
-        add(hint, BorderLayout.SOUTH);
     }
 
     private void cargarDatos() {
@@ -92,8 +87,6 @@ public class UsersPanel extends JPanel {
         boolean esNuevo = usuario == null;
 
         JDialog dlg = new JDialog(f, esNuevo ? "Nuevo usuario" : "Editar usuario", true);
-        dlg.setSize(460, 460);
-        dlg.setLocationRelativeTo(f);
 
         JPanel root = new JPanel(new BorderLayout(0, 12));
         root.setBorder(BorderFactory.createEmptyBorder(20, 24, 16, 24));
@@ -169,6 +162,14 @@ public class UsersPanel extends JPanel {
 
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
+
+        dlg.pack();
+        Dimension tamMin = new Dimension(480, 580);
+        if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
+            dlg.setSize(tamMin);
+        }
+        dlg.setMinimumSize(tamMin);
+        dlg.setLocationRelativeTo(f);
         dlg.setVisible(true);
     }
 

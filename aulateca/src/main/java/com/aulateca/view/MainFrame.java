@@ -119,7 +119,7 @@ public class MainFrame extends JFrame {
             BorderFactory.createEmptyBorder(16, 8, 16, 8)
         ));
 
-        JButton btnNueva = new JButton("+ Nueva reserva") {
+        JButton btnNueva = new JButton("Nueva reserva") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -142,14 +142,15 @@ public class MainFrame extends JFrame {
         btnNueva.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnNueva.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnNueva.setMaximumSize(new Dimension(210, 48));
-        btnNueva.addActionListener(e -> mostrarPanel(new ReservationsPanel(usuarioActual)));
+        btnNueva.addActionListener(e ->
+            ReservationsPanel.abrirFormulario(this, usuarioActual, null, null));
         sidebar.add(btnNueva);
         sidebar.add(Box.createVerticalStrut(20));
 
         addSidebarLabel(sidebar, "MENÚ PRINCIPAL");
-        addNavItem(sidebar, "🏠", "Inicio",            () -> mostrarPanel(new DashboardPanel(usuarioActual)));
-        addNavItem(sidebar, "📅", "Reservas",           () -> mostrarPanel(new ReservationsPanel(usuarioActual)));
-        addNavItem(sidebar, "🔍", "Disponibilidad",     () -> mostrarPanel(new AvailabilityPanel()));
+        addNavItem(sidebar, "Inicio",            () -> mostrarPanel(new DashboardPanel(usuarioActual)));
+        addNavItem(sidebar, "Reservas",           () -> mostrarPanel(new ReservationsPanel(usuarioActual)));
+        addNavItem(sidebar, "Disponibilidad",     () -> mostrarPanel(new AvailabilityPanel()));
 
         if (usuarioActual.getRol() == User.Rol.ADMIN || usuarioActual.getRol() == User.Rol.PROFESOR) {
 
@@ -158,10 +159,10 @@ public class MainFrame extends JFrame {
             sidebar.add(Box.createVerticalStrut(8));
 
             addSidebarLabel(sidebar, "CONFIGURACIÓN");
-            addNavItem(sidebar, "🏫", "Recursos",           () -> mostrarPanel(new ResourcesPanel()));
-            addNavItem(sidebar, "📁", "Tipos de recurso",   () -> mostrarPanel(new ResourceTypesPanel()));
-            addNavItem(sidebar, "🔴", "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
-            addNavItem(sidebar, "⏰", "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
+            addNavItem(sidebar, "Recursos",           () -> mostrarPanel(new ResourcesPanel()));
+            addNavItem(sidebar, "Tipos de recurso",   () -> mostrarPanel(new ResourceTypesPanel()));
+            addNavItem(sidebar, "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
+            addNavItem(sidebar, "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
         }
         
         if (usuarioActual.getRol() == User.Rol.ADMIN) {
@@ -169,7 +170,7 @@ public class MainFrame extends JFrame {
             addSidebarSeparator(sidebar);
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarLabel(sidebar, "ADMINISTRACIÓN");
-            addNavItem(sidebar, "👥", "Usuarios",       () -> mostrarPanel(new UsersPanel()));
+            addNavItem(sidebar, "Usuarios",       () -> mostrarPanel(new UsersPanel()));
         }
 
         sidebar.add(Box.createVerticalGlue());
@@ -193,7 +194,7 @@ public class MainFrame extends JFrame {
         sidebar.add(sep);
     }
 
-    private void addNavItem(JPanel sidebar, String icon, String label, Runnable action) {
+    private void addNavItem(JPanel sidebar, String label, Runnable action) {
         JPanel item = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 if (getBackground() != AppColors.BG_APP) {
@@ -213,18 +214,11 @@ public class MainFrame extends JFrame {
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         item.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 8));
 
-        JLabel iconLbl = new JLabel(icon);
-        iconLbl.setFont(UIFactory.emojiFont(14));
-        iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
-
         JLabel textLbl = new JLabel(label);
         textLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textLbl.setForeground(AppColors.TEXT_PRIMARY);
         textLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-        item.add(Box.createHorizontalStrut(4));
-        item.add(iconLbl);
-        item.add(Box.createHorizontalStrut(8));
         item.add(textLbl);
         item.add(Box.createHorizontalGlue());
 

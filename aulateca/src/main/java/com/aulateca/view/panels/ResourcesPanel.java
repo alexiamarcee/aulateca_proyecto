@@ -28,13 +28,13 @@ public class ResourcesPanel extends JPanel {
     private void initUI() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(UIFactory.sectionTitle("🏫  Gestión de Recursos"), BorderLayout.WEST);
+        top.add(UIFactory.sectionTitle("Gestión de recursos"), BorderLayout.WEST);
 
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         toolbar.setOpaque(false);
-        JButton btnNuevo  = UIFactory.accentButton("+ Nuevo recurso");
-        JButton btnEditar = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnNuevo  = UIFactory.accentButton("Nuevo recurso");
+        JButton btnEditar = UIFactory.primaryButton("Editar");
+        JButton btnEliminar = UIFactory.dangerButton("Eliminar");
         JButton btnActualizar = UIFactory.secondaryButton("↻");
 
         btnNuevo.addActionListener(e -> abrirFormulario(null));
@@ -101,8 +101,6 @@ public class ResourcesPanel extends JPanel {
 
         JDialog dlg = new JDialog(frame,
             recurso == null ? "Nuevo recurso" : "Editar recurso", true);
-        dlg.setSize(480, 520);
-        dlg.setLocationRelativeTo(frame);
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(AppColors.BG_WHITE);
@@ -176,6 +174,14 @@ public class ResourcesPanel extends JPanel {
         btns.add(btnCancel);
         btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
+
+        dlg.pack();
+        Dimension tamMin = new Dimension(500, 600);
+        if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
+            dlg.setSize(tamMin);
+        }
+        dlg.setMinimumSize(tamMin);
+        dlg.setLocationRelativeTo(frame);
         dlg.setVisible(true);
     }
 

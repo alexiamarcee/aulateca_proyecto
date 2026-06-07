@@ -85,6 +85,8 @@ public class LoginDialog extends JDialog {
         JLabel lblPass  = UIFactory.formLabel("Contraseña");
         lblEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, lblEmail.getPreferredSize().height));
+        lblPass.setMaximumSize(new Dimension(Integer.MAX_VALUE, lblPass.getPreferredSize().height));
         txtEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
@@ -98,13 +100,6 @@ public class LoginDialog extends JDialog {
         form.add(Box.createVerticalStrut(6));
         form.add(txtPassword);
         form.add(Box.createVerticalStrut(8));
-
-        JLabel hint = new JLabel("Por defecto: admin@aulateca.es / admin123");
-        hint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        hint.setForeground(AppColors.TEXT_HINT);
-        hint.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(hint);
-        form.add(Box.createVerticalStrut(28));
 
         JButton btnLogin = UIFactory.primaryButton("Iniciar sesión");
         btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
