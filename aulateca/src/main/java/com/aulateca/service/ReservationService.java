@@ -40,7 +40,7 @@ public class ReservationService {
     public Reservation modificarReserva(User operador, Long id, User usuario, Resource recurso,
                                          LocalDate fecha, TimeSlot franja, String motivo) {
         Reservation reserva = reservationDAO.buscarPorId(id)
-            .orElseThrow(() -> new ValidationException("Reserva no encontrada con ID: " + id));
+            .orElseThrow(() -> new ValidationException("Reserva no encontrada."));
 
         if (reserva.getEstado() == Reservation.Estado.CANCELADA) {
             throw new BusinessException("No se puede modificar una reserva cancelada.");
@@ -70,7 +70,7 @@ public class ReservationService {
     /** Cancela una reserva confirmada. */
     public void cancelarReserva(User operador, Long id) {
         Reservation reserva = reservationDAO.buscarPorId(id)
-            .orElseThrow(() -> new ValidationException("Reserva no encontrada con ID: " + id));
+            .orElseThrow(() -> new ValidationException("Reserva no encontrada."));
 
         validarPermisoReserva(operador, reserva.getUsuario());
 

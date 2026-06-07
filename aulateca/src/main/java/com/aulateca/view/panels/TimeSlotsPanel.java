@@ -47,16 +47,15 @@ public class TimeSlotsPanel extends JPanel {
         add(top, BorderLayout.NORTH);
 
         modelo = new DefaultTableModel(
-                new String[]{"ID", "Nombre", "Hora inicio", "Hora fin", "Orden"}, 0) {
+                new String[]{"Nombre", "Hora inicio", "Hora fin", "Orden"}, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         tabla = new JTable(modelo);
         UIFactory.styleTable(tabla);
-        tabla.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tabla.getColumnModel().getColumn(1).setPreferredWidth(160);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(160);
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(100);
         tabla.getColumnModel().getColumn(2).setPreferredWidth(100);
-        tabla.getColumnModel().getColumn(3).setPreferredWidth(100);
-        tabla.getColumnModel().getColumn(4).setPreferredWidth(60);
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(60);
 
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
@@ -73,7 +72,7 @@ public class TimeSlotsPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(ts -> modelo.addRow(new Object[]{
-            ts.getId(), ts.getNombre(),
+            ts.getNombre(),
             ts.getHoraInicio().toString(),
             ts.getHoraFin().toString(),
             ts.getOrden()

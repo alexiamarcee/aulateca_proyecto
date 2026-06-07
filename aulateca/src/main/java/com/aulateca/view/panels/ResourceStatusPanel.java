@@ -41,15 +41,14 @@ public class ResourceStatusPanel extends JPanel {
         top.add(tb, BorderLayout.EAST);
         add(top, BorderLayout.NORTH);
 
-        modelo = new DefaultTableModel(new String[]{"ID", "Nombre", "Descripción", "¿Reservable?"}, 0) {
+        modelo = new DefaultTableModel(new String[]{"Nombre", "Descripción", "¿Reservable?"}, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         tabla = new JTable(modelo);
         UIFactory.styleTable(tabla);
-        tabla.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tabla.getColumnModel().getColumn(1).setPreferredWidth(140);
-        tabla.getColumnModel().getColumn(2).setPreferredWidth(420);
-        tabla.getColumnModel().getColumn(3).setPreferredWidth(100);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(140);
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(420);
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(100);
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         add(sp, BorderLayout.CENTER);
@@ -65,7 +64,7 @@ public class ResourceStatusPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(s -> modelo.addRow(new Object[]{
-            s.getId(), s.getNombre(),
+            s.getNombre(),
             s.getDescripcion() != null ? s.getDescripcion() : "—",
             s.isReservable() ? "Sí" : "No"
         }));

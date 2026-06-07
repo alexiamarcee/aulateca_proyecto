@@ -50,16 +50,15 @@ public class UsersPanel extends JPanel {
         add(top, BorderLayout.NORTH);
 
         modelo = new DefaultTableModel(
-                new String[]{"ID", "Nombre completo", "Email", "Rol", "Activo"}, 0) {
+                new String[]{"Nombre completo", "Email", "Rol", "Activo"}, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         tabla = new JTable(modelo);
         UIFactory.styleTable(tabla);
-        tabla.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tabla.getColumnModel().getColumn(1).setPreferredWidth(200);
-        tabla.getColumnModel().getColumn(2).setPreferredWidth(220);
-        tabla.getColumnModel().getColumn(3).setPreferredWidth(100);
-        tabla.getColumnModel().getColumn(4).setPreferredWidth(60);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(200);
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(100);
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(60);
 
         JScrollPane sp = new JScrollPane(tabla);
         sp.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
@@ -76,7 +75,7 @@ public class UsersPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(u -> modelo.addRow(new Object[]{
-            u.getId(), u.getNombreCompleto(), u.getEmail(),
+            u.getNombreCompleto(), u.getEmail(),
             u.getRol().name(), u.isActivo() ? "Sí" : "No"
         }));
     }

@@ -105,7 +105,7 @@ public class Reservation {
 
     @Override
     public String toString() {
-        return String.format("Reserva #%d - %s | %s | %s | %s",
-            id, recurso.getNombre(), fecha, franjaHoraria.getNombre(), estado);
+        return String.format("Reserva - %s | %s | %s | %s",
+            recurso.getNombre(), fecha, franjaHoraria.getNombre(), estado);
     }
 }
