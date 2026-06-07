@@ -91,7 +91,7 @@ public class ResourcesPanel extends JPanel {
 
         JDialog dlg = new JDialog(frame,
             recurso == null ? "Nuevo recurso" : "Editar recurso", true);
-        dlg.setSize(460, 420);
+        dlg.setSize(480, 580);
         dlg.setLocationRelativeTo(frame);
 
         JPanel root = new JPanel(new BorderLayout());
@@ -110,7 +110,7 @@ public class ResourcesPanel extends JPanel {
         gbc.gridx = 0; gbc.weightx = 1.0;
 
         JTextField txtNombre   = UIFactory.textField(20);
-        JTextField txtDescripcion = UIFactory.textField(20);
+        JTextArea  txtDescripcion = new JTextArea(3, 20);
         JTextField txtUbicacion   = UIFactory.textField(20);
         JComboBox<ResourceType>   cmbTipo   = UIFactory.comboBox();
         JComboBox<ResourceStatus> cmbEstado = UIFactory.comboBox();
@@ -134,7 +134,7 @@ public class ResourcesPanel extends JPanel {
         gbc.gridy = 6; form.add(UIFactory.formLabel("Ubicación"), gbc);
         gbc.gridy = 7; form.add(txtUbicacion, gbc);
         gbc.gridy = 8; form.add(UIFactory.formLabel("Descripción"), gbc);
-        gbc.gridy = 9; form.add(txtDescripcion, gbc);
+        gbc.gridy = 9; form.add(UIFactory.textArea(txtDescripcion), gbc);
 
         root.add(form, BorderLayout.CENTER);
 
