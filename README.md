@@ -215,6 +215,16 @@ mvn exec:java -Dexec.mainClass="com.aulateca.Main"
 
 ---
 
+## Modelado del sistema
+
+### Diagrama Entidad-Relación
+
+![Diagrama Entidad-Relación](aulateca/Diagramas/Diagrama_entidad_relacion.png)
+
+El modelo define seis entidades principales: `users`, `resources`, `resource_types`, `resource_status`, `time_slots` y `reservations`. La tabla `reservations` incorpora una restricción de unicidad compuesta sobre `(recurso_id, fecha, franja_horaria_id)` que impide a nivel de base de datos que un mismo recurso pueda reservarse dos veces en la misma fecha y franja horaria.
+
+---
+
 ## Arquitectura y patrones
 
 ```
@@ -251,4 +261,3 @@ MySQL / MariaDB
 5. Los usuarios inactivos no pueden autenticarse
 6. Al cancelar una reserva, no se elimina físicamente: cambia su estado a `CANCELADA`
 7. Solo el ADMIN puede gestionar reservas de otros usuarios; PROFESOR y ALUMNO solo pueden gestionar las propias
-
