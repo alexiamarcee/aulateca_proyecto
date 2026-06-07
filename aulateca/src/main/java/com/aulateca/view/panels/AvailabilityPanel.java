@@ -38,9 +38,40 @@ public class AvailabilityPanel extends JPanel {
         titulo.setFont(new Font("Segoe UI", Font.PLAIN, 28));
         titulo.setForeground(AppColors.TEXT_PRIMARY);
         header.add(titulo, BorderLayout.WEST);
-        add(header, BorderLayout.NORTH);
 
-        JPanel filterCard = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10)) {
+        JPanel filtersRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+        filtersRow.setOpaque(false);
+
+        JLabel lblFecha = UIFactory.formLabel("Fecha");
+        lblFecha.setAlignmentY(Component.CENTER_ALIGNMENT);
+        filtersRow.add(lblFecha);
+        dateChooser = UIFactory.dateChooser();
+        dateChooser.setDate(new Date());
+        filtersRow.add(dateChooser);
+
+        JLabel lblTipo = UIFactory.formLabel("Tipo de recurso");
+        lblTipo.setAlignmentY(Component.CENTER_ALIGNMENT);
+        filtersRow.add(lblTipo);
+        cmbTipo = new JComboBox<>();
+        var tiposResult = controller.nombresTiposRecurso();
+        if (!tiposResult.esError()) {
+            tiposResult.datos().forEach(cmbTipo::addItem);
+        }
+        cmbTipo.setFont(UIFactory.FONT_BODY);
+        cmbTipo.setPrototypeDisplayValue("Todos los tipos");
+        filtersRow.add(cmbTipo);
+
+        JButton btnConsultar = UIFactory.primaryButton("Consultar");
+        btnConsultar.addActionListener(e -> consultarDisponibilidad());
+        filtersRow.add(btnConsultar);
+
+        JPanel legendRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        legendRow.setOpaque(false);
+        legendRow.add(legendItem("Libre",          AppColors.AVAILABLE,  AppColors.AVAILABLE_FG));
+        legendRow.add(legendItem("Ocupado",         AppColors.RESERVED,   AppColors.RESERVED_FG));
+        legendRow.add(legendItem("No reservable",   AppColors.BLOCKED,    AppColors.BLOCKED_FG));
+
+        JPanel filterCard = new JPanel(new BorderLayout(16, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -50,37 +81,15 @@ public class AvailabilityPanel extends JPanel {
             }
         };
         filterCard.setOpaque(false);
-        filterCard.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        filterCard.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        filterCard.add(filtersRow, BorderLayout.WEST);
+        filterCard.add(legendRow, BorderLayout.EAST);
 
-        filterCard.add(UIFactory.formLabel("Fecha"));
-        dateChooser = UIFactory.dateChooser();
-        dateChooser.setDate(new Date());
-        dateChooser.setPreferredSize(new Dimension(150, 38));
-        filterCard.add(dateChooser);
-
-        filterCard.add(Box.createHorizontalStrut(8));
-
-        filterCard.add(UIFactory.formLabel("Tipo de recurso"));
-        cmbTipo = new JComboBox<>();
-        var tiposResult = controller.nombresTiposRecurso();
-        if (!tiposResult.esError()) {
-            tiposResult.datos().forEach(cmbTipo::addItem);
-        }
-        cmbTipo.setFont(UIFactory.FONT_BODY);
-        cmbTipo.setPreferredSize(new Dimension(180, 36));
-        filterCard.add(cmbTipo);
-
-        filterCard.add(Box.createHorizontalStrut(8));
-        JButton btnConsultar = UIFactory.primaryButton("Consultar");
-        btnConsultar.addActionListener(e -> consultarDisponibilidad());
-        filterCard.add(btnConsultar);
-
-        filterCard.add(Box.createHorizontalStrut(16));
-        filterCard.add(legendItem("Libre",          AppColors.AVAILABLE,  AppColors.AVAILABLE_FG));
-        filterCard.add(legendItem("Ocupado",         AppColors.RESERVED,   AppColors.RESERVED_FG));
-        filterCard.add(legendItem("No reservable",   AppColors.BLOCKED,    AppColors.BLOCKED_FG));
-
-        add(filterCard, BorderLayout.CENTER);
+        JPanel topSection = new JPanel(new BorderLayout(0, 12));
+        topSection.setOpaque(false);
+        topSection.add(header, BorderLayout.NORTH);
+        topSection.add(filterCard, BorderLayout.CENTER);
+        add(topSection, BorderLayout.NORTH);
 
         gridPanel = new JPanel(new BorderLayout());
         gridPanel.setOpaque(false);
@@ -88,8 +97,7 @@ public class AvailabilityPanel extends JPanel {
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
-        scroll.setPreferredSize(new Dimension(0, 420));
-        add(scroll, BorderLayout.SOUTH);
+        add(scroll, BorderLayout.CENTER);
     }
 
     private JPanel legendItem(String label, Color bg, Color fg) {
@@ -144,10 +152,13 @@ public class AvailabilityPanel extends JPanel {
         card.setOpaque(false);
         card.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
+        JPanel fechaHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        fechaHeader.setOpaque(false);
         JLabel fechaLbl = new JLabel(datos.fechaFormateada());
         fechaLbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         fechaLbl.setForeground(AppColors.TEXT_PRIMARY);
-        card.add(fechaLbl, BorderLayout.NORTH);
+        fechaHeader.add(fechaLbl);
+        card.add(fechaHeader, BorderLayout.NORTH);
 
         List<String> franjas = datos.nombresFranjas();
         String[] columnas = new String[franjas.size() + 1];

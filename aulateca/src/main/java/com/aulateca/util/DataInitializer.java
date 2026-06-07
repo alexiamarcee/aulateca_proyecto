@@ -2,7 +2,6 @@ package com.aulateca.util;
 
 import com.aulateca.dao.*;
 import com.aulateca.model.*;
-import com.aulateca.util.PasswordUtil;
 
 import java.time.LocalTime;
 
@@ -57,6 +56,7 @@ public class DataInitializer {
         resourceDAO.guardar(new Resource("Proyector 2", "BenQ MX550, portátil", tipoProyector, mantenimiento, "Conserjería"));
         resourceDAO.guardar(new Resource("Carrito A", "15 portátiles HP", tipoCarrito, disponible, "Planta 1"));
         resourceDAO.guardar(new Resource("Carrito B", "15 portátiles Lenovo", tipoCarrito, disponible, "Planta 2"));
+        resourceDAO.guardar(new Resource("Carrito C", "15 portátiles Dell", tipoCarrito, disponible, "Planta 3"));
         resourceDAO.guardar(new Resource("Sala de reuniones del ala sur", "6 plazas, privada", tipoSala, disponible, "Ala sur"));
 
         slotDAO.guardar(new TimeSlot("1ª hora",  LocalTime.of(8,  0), LocalTime.of(9,  0), 1));

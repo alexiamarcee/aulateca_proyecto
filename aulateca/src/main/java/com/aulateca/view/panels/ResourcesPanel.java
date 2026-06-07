@@ -2,16 +2,13 @@ package com.aulateca.view.panels;
 
 import com.aulateca.controller.ResourceController;
 import com.aulateca.model.*;
-import com.aulateca.util.ResourceCatalog;
 import com.aulateca.view.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /** CRUD de recursos (capa Vista). */
 public class ResourcesPanel extends JPanel {
@@ -41,13 +38,7 @@ public class ResourcesPanel extends JPanel {
         JButton btnEliminar = UIFactory.dangerButton("Eliminar");
         JButton btnActualizar = UIFactory.secondaryButton("↻");
 
-        btnNuevo.addActionListener(e -> {
-            if (!hayRecursosDisponiblesEnCatalogo()) {
-                UIFactory.showError(this, "Todos los recursos del catálogo ya están registrados.");
-                return;
-            }
-            abrirFormulario(null);
-        });
+        btnNuevo.addActionListener(e -> abrirFormulario(null));
         btnEditar.addActionListener(e -> editarSeleccionado());
         btnEliminar.addActionListener(e -> eliminarSeleccionado());
         btnActualizar.addActionListener(e -> cargarDatos());
@@ -102,106 +93,91 @@ public class ResourcesPanel extends JPanel {
             return;
         }
 
-        List<ResourceType> tiposCatalogo = tiposResult.datos().stream()
-            .filter(t -> ResourceCatalog.tieneCatalogo(t.getNombre()))
-            .collect(Collectors.toList());
-        if (tiposCatalogo.isEmpty()) {
-            UIFactory.showError(this, "No hay tipos de recurso configurados en el catálogo.");
+        List<ResourceType> tipos = tiposResult.datos();
+        List<ResourceStatus> estados = estadosResult.datos();
+        if (tipos.isEmpty()) {
+            UIFactory.showError(this, "No hay tipos de recurso configurados.");
             return;
         }
-        List<ResourceStatus> estados = estadosResult.datos();
 
+        boolean esNuevo = recurso == null;
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame ? (Frame) w : null;
 
         JDialog dlg = new JDialog(frame,
-            recurso == null ? "Nuevo recurso" : "Editar recurso", true);
+            esNuevo ? "Nuevo recurso" : "Editar recurso", true);
+        dlg.setResizable(true);
 
-        JPanel root = new JPanel(new BorderLayout());
+        JPanel root = new JPanel(new BorderLayout(0, 16));
         root.setBackground(AppColors.BG_WHITE);
-        root.setBorder(BorderFactory.createEmptyBorder(20, 24, 16, 24));
+        root.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
         dlg.setContentPane(root);
 
-        root.add(UIFactory.sectionTitle(recurso == null ?
-            "Nuevo recurso" : "Editar: " + recurso.getNombre()), BorderLayout.NORTH);
+        root.add(UIFactory.sectionTitle(esNuevo ?
+            "Nuevo recurso" : "Editar recurso"), BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(AppColors.BG_WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(6, 0, 6, 0);
-        gbc.gridx = 0; gbc.weightx = 1.0;
+        gbc.insets = new Insets(4, 0, 10, 0);
 
-        JComboBox<ResourceType>   cmbTipo       = UIFactory.comboBox();
-        JComboBox<String>         cmbNombre     = UIFactory.comboBox();
-        JComboBox<ResourceStatus> cmbEstado     = UIFactory.comboBox();
-        JTextArea                 txtComentarios = new JTextArea(3, 20);
+        JComboBox<ResourceType>   cmbTipo        = comboFormulario();
+        JTextField                txtNombre      = UIFactory.textField(32);
+        JComboBox<ResourceStatus> cmbEstado      = comboFormulario();
+        JTextArea                 txtComentarios = new JTextArea(5, 32);
+        JScrollPane               panelComentarios = UIFactory.textArea(txtComentarios);
+        panelComentarios.setPreferredSize(new Dimension(0, 120));
 
-        tiposCatalogo.forEach(cmbTipo::addItem);
+        tipos.forEach(cmbTipo::addItem);
         estados.forEach(cmbEstado::addItem);
 
-        Runnable actualizarNombres = () -> {
-            cmbNombre.removeAllItems();
-            ResourceType tipo = (ResourceType) cmbTipo.getSelectedItem();
-            if (tipo == null) return;
-
-            Set<String> nombresUsados = nombresOcupados(recurso);
-            for (ResourceCatalog.Opcion opcion : ResourceCatalog.opcionesPorTipo(tipo.getNombre())) {
-                boolean esActual = recurso != null && opcion.nombre().equals(recurso.getNombre());
-                if (esActual || !nombresUsados.contains(opcion.nombre())) {
-                    cmbNombre.addItem(opcion.nombre());
-                }
-            }
-
-            if (recurso != null && cmbNombre.getItemCount() == 0) {
-                cmbNombre.addItem(recurso.getNombre());
-            } else if (recurso != null) {
-                cmbNombre.setSelectedItem(recurso.getNombre());
-            }
-        };
-
-        cmbTipo.addActionListener(e -> actualizarNombres.run());
-
-        if (recurso != null) {
-            cmbTipo.setSelectedItem(recurso.getTipo());
+        int row = 0;
+        if (esNuevo) {
+            agregarFila(form, gbc, row++, "Tipo *", cmbTipo);
+            agregarFila(form, gbc, row++, "Nombre *", txtNombre);
+        } else {
+            agregarFila(form, gbc, row++, "Tipo", campoSoloLectura(recurso.getTipo().getNombre()));
+            agregarFila(form, gbc, row++, "Nombre", campoSoloLectura(recurso.getNombre()));
             cmbEstado.setSelectedItem(recurso.getEstado());
             txtComentarios.setText(recurso.getDescripcion() != null ? recurso.getDescripcion() : "");
         }
-        actualizarNombres.run();
 
-        gbc.gridy = 0; form.add(UIFactory.formLabel("Tipo *"), gbc);
-        gbc.gridy = 1; form.add(cmbTipo, gbc);
-        gbc.gridy = 2; form.add(UIFactory.formLabel("Nombre *"), gbc);
-        gbc.gridy = 3; form.add(cmbNombre, gbc);
-        gbc.gridy = 4; form.add(UIFactory.formLabel("Estado *"), gbc);
-        gbc.gridy = 5; form.add(cmbEstado, gbc);
-        gbc.gridy = 6; form.add(UIFactory.formLabel("Comentarios"), gbc);
-        gbc.gridy = 7; form.add(UIFactory.textArea(txtComentarios), gbc);
+        agregarFila(form, gbc, row++, "Estado *", cmbEstado);
+        agregarFila(form, gbc, row, "Comentarios", panelComentarios);
 
         root.add(form, BorderLayout.CENTER);
 
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         btns.setOpaque(false);
+        btns.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
         JButton btnCancel = UIFactory.secondaryButton("Cancelar");
         JButton btnOk     = UIFactory.primaryButton("Guardar");
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
-            ResourceType tipo = (ResourceType) cmbTipo.getSelectedItem();
-            String nombre = (String) cmbNombre.getSelectedItem();
-            if (tipo == null || nombre == null || nombre.isBlank()) {
-                UIFactory.showError(dlg, "Selecciona un tipo y un nombre de recurso.");
+            String comentarios = txtComentarios.getText().trim();
+            ResourceStatus estado = (ResourceStatus) cmbEstado.getSelectedItem();
+            if (estado == null) {
+                UIFactory.showError(dlg, "Selecciona un estado.");
                 return;
             }
 
-            String comentarios = txtComentarios.getText().trim();
-            String ubicacion = ResourceCatalog.buscarUbicacion(tipo.getNombre(), nombre)
-                .orElse(recurso != null ? recurso.getUbicacion() : null);
-
-            var error = (recurso == null)
-                ? controller.crear(nombre, comentarios, tipo,
-                    (ResourceStatus) cmbEstado.getSelectedItem(), ubicacion)
-                : controller.actualizar(recurso, nombre, comentarios, tipo,
-                    (ResourceStatus) cmbEstado.getSelectedItem(), ubicacion);
+            Optional<String> error;
+            if (esNuevo) {
+                ResourceType tipo = (ResourceType) cmbTipo.getSelectedItem();
+                String nombre = txtNombre.getText().trim();
+                if (tipo == null || nombre.isBlank()) {
+                    UIFactory.showError(dlg, "Indica el tipo y el nombre del recurso.");
+                    return;
+                }
+                error = controller.crear(nombre, comentarios, tipo, estado, null);
+            } else {
+                error = controller.actualizar(recurso, recurso.getNombre(), comentarios,
+                    recurso.getTipo(), estado, recurso.getUbicacion());
+            }
 
             if (error.isPresent()) {
                 UIFactory.showError(dlg, error.get());
@@ -216,7 +192,7 @@ public class ResourcesPanel extends JPanel {
         root.add(btns, BorderLayout.SOUTH);
 
         dlg.pack();
-        Dimension tamMin = new Dimension(500, 480);
+        Dimension tamMin = new Dimension(560, esNuevo ? 500 : 460);
         if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
             dlg.setSize(tamMin);
         }
@@ -225,18 +201,29 @@ public class ResourcesPanel extends JPanel {
         dlg.setVisible(true);
     }
 
-    private boolean hayRecursosDisponiblesEnCatalogo() {
-        return ResourceCatalog.quedanOpcionesDisponibles(nombresOcupados(null));
+    private void agregarFila(JPanel form, GridBagConstraints gbc, int row,
+                             String etiqueta, Component campo) {
+        gbc.gridy = row * 2;
+        gbc.weighty = 0;
+        form.add(UIFactory.formLabel(etiqueta), gbc);
+        gbc.gridy = row * 2 + 1;
+        form.add(campo, gbc);
     }
 
-    private Set<String> nombresOcupados(Resource recursoEnEdicion) {
-        Set<String> usados = new HashSet<>();
-        for (Resource r : listaActual) {
-            if (recursoEnEdicion == null || !r.getId().equals(recursoEnEdicion.getId())) {
-                usados.add(r.getNombre());
-            }
-        }
-        return usados;
+    private <T> JComboBox<T> comboFormulario() {
+        JComboBox<T> cb = UIFactory.comboBox();
+        cb.setPreferredSize(new Dimension(0, 40));
+        return cb;
+    }
+
+    private JTextField campoSoloLectura(String valor) {
+        JTextField tf = UIFactory.textField(32);
+        tf.setText(valor);
+        tf.setEditable(false);
+        tf.setFocusable(false);
+        tf.setBackground(AppColors.BG_APP);
+        tf.setCaretPosition(0);
+        return tf;
     }
 
     private void editarSeleccionado() {

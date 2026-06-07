@@ -4,7 +4,6 @@ import com.aulateca.dao.ReservationDAO;
 import com.aulateca.dao.ResourceDAO;
 import com.aulateca.dao.ResourceTypeDAO;
 import com.aulateca.dao.TimeSlotDAO;
-import com.aulateca.exception.ValidationException;
 import com.aulateca.model.Resource;
 import com.aulateca.model.TimeSlot;
 import com.aulateca.service.dto.DisponibilidadResultado;

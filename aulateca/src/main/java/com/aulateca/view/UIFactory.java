@@ -1,12 +1,17 @@
 package com.aulateca.view;
 
+import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
+import com.toedter.calendar.JMonthChooser;
+import com.toedter.calendar.JTextFieldDateEditor;
+import com.toedter.calendar.JYearChooser;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.util.Locale;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
@@ -221,18 +226,25 @@ public class UIFactory {
 
     /** Selector de fecha alineado con el resto de campos del formulario. */
     public static JDateChooser dateChooser() {
-        JDateChooser dc = new JDateChooser();
-        dc.setDateFormatString("dd/MM/yyyy");
+        Locale es = Locale.forLanguageTag("es-ES");
+        JCalendar calendar = new JCalendar(es, false);
+        styleCalendar(calendar);
+
+        JDateChooser dc = new JDateChooser(calendar, null, "dd/MM/yyyy",
+            new JTextFieldDateEditor(false, "dd/MM/yyyy", "dd/MM/yyyy", ' '));
         dc.setFont(FONT_BODY);
         dc.setBackground(AppColors.BG_WHITE);
         dc.setOpaque(true);
-        dc.setPreferredSize(new Dimension(0, 38));
+        dc.setPreferredSize(new Dimension(220, 38));
 
         JComponent editor = (JComponent) dc.getDateEditor().getUiComponent();
         editor.setFont(FONT_BODY);
         editor.setForeground(AppColors.TEXT_PRIMARY);
         editor.setBackground(AppColors.BG_WHITE);
         editor.setBorder(DATE_FIELD_BORDER);
+        if (editor instanceof JTextField tf) {
+            tf.setColumns(12);
+        }
         editor.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent e) {
                 editor.setBorder(DATE_FIELD_FOCUS_BORDER);
@@ -242,6 +254,8 @@ public class UIFactory {
             }
         });
 
+        dc.setLocale(es);
+
         for (Component c : dc.getComponents()) {
             if (c instanceof JButton btn) {
                 btn.setBackground(AppColors.PRIMARY);
@@ -249,13 +263,41 @@ public class UIFactory {
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(false);
                 btn.setOpaque(true);
-                btn.setText("📅");
-                btn.setFont(emojiFont(13));
-                btn.setPreferredSize(new Dimension(38, 38));
-                btn.setMinimumSize(new Dimension(38, 38));
+                btn.setIcon(null);
+                btn.setText("\u25BC");
+                btn.setFont(new Font(FONT_BUTTON.getName(), Font.BOLD, 14));
+                btn.setPreferredSize(new Dimension(48, 38));
+                btn.setMinimumSize(new Dimension(48, 38));
             }
         }
         return dc;
+    }
+
+    private static void styleCalendar(JCalendar calendar) {
+        calendar.setPreferredSize(new Dimension(340, 250));
+        calendar.setMinimumSize(new Dimension(340, 250));
+        calendar.setWeekOfYearVisible(false);
+        calendar.setFont(FONT_BODY);
+        calendar.setLocale(Locale.forLanguageTag("es-ES"));
+        calendar.setDecorationBackgroundColor(AppColors.BG_WHITE);
+        calendar.setDecorationBackgroundVisible(true);
+
+        JMonthChooser monthChooser = calendar.getMonthChooser();
+        monthChooser.setLocale(Locale.forLanguageTag("es-ES"));
+        monthChooser.setPreferredSize(new Dimension(140, 30));
+        Component monthCombo = monthChooser.getComboBox();
+        if (monthCombo instanceof JComboBox) {
+            @SuppressWarnings("unchecked")
+            JComboBox<String> cb = (JComboBox<String>) monthCombo;
+            cb.setFont(FONT_BODY);
+            cb.setPrototypeDisplayValue("Septiembre");
+            cb.setPreferredSize(new Dimension(140, 30));
+        }
+
+        JYearChooser yearChooser = calendar.getYearChooser();
+        yearChooser.setFont(FONT_BODY);
+        yearChooser.adjustWidthToMaximumValue();
+        yearChooser.setPreferredSize(new Dimension(88, 30));
     }
 
     public static JComponent sectionTitle(String text) {

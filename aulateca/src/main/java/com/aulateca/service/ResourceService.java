@@ -4,7 +4,6 @@ import com.aulateca.dao.ResourceDAO;
 import com.aulateca.dao.ResourceStatusDAO;
 import com.aulateca.dao.ResourceTypeDAO;
 import com.aulateca.exception.BusinessException;
-import com.aulateca.exception.ValidationException;
 import com.aulateca.model.Resource;
 import com.aulateca.model.ResourceStatus;
 import com.aulateca.model.ResourceType;
