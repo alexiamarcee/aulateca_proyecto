@@ -51,7 +51,7 @@ public class MainFrame extends JFrame {
         bar.setPreferredSize(new Dimension(0, 64));
         bar.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, AppColors.BORDER),
-            BorderFactory.createEmptyBorder(0, 20, 0, 20)
+            BorderFactory.createEmptyBorder(10, 20, 0, 20)
         ));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));

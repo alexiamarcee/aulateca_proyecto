@@ -39,7 +39,7 @@ public class DashboardPanel extends JPanel {
         fecha.setFont(new Font("Segoe UI", Font.PLAIN, 28));
         fecha.setForeground(AppColors.TEXT_PRIMARY);
 
-        JLabel saludo = new JLabel("Hola, " + usuario.getNombre() + " 👋");
+        JLabel saludo = new JLabel("Hola, " + usuario.getNombre());
         saludo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         saludo.setForeground(AppColors.TEXT_SECONDARY);
 
