@@ -1,6 +1,6 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.UserDAO;
+import com.aulateca.controller.UserController;
 import com.aulateca.model.User;
 import com.aulateca.view.*;
 
@@ -9,10 +9,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/** CRUD de usuarios (solo admin). */
+/** CRUD de usuarios (capa Vista, solo admin). */
 public class UsersPanel extends JPanel {
 
-    private final UserDAO dao = new UserDAO();
+    private final UserController controller = new UserController();
     private JTable tabla;
     private DefaultTableModel modelo;
     private List<User> lista;
@@ -74,7 +74,13 @@ public class UsersPanel extends JPanel {
 
     private void cargarDatos() {
         modelo.setRowCount(0);
-        lista = dao.buscarTodos();
+        var resultado = controller.listarUsuarios();
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            lista = List.of();
+            return;
+        }
+        lista = resultado.datos();
         lista.forEach(u -> modelo.addRow(new Object[]{
             u.getId(), u.getNombreCompleto(), u.getEmail(),
             u.getRol().name(), u.isActivo() ? "Sí" : "No"
@@ -145,42 +151,21 @@ public class UsersPanel extends JPanel {
 
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
-            String nombre    = txtNombre.getText().trim();
-            String apellidos = txtApellidos.getText().trim();
-            String email     = txtEmail.getText().trim();
-            String password  = new String(txtPassword.getPassword()).trim();
+            String password = new String(txtPassword.getPassword()).trim();
+            var error = esNuevo
+                ? controller.crear(txtNombre.getText(), txtApellidos.getText(),
+                    txtEmail.getText(), password, (User.Rol) cmbRol.getSelectedItem())
+                : controller.actualizar(usuario, txtNombre.getText(), txtApellidos.getText(),
+                    txtEmail.getText(), password, (User.Rol) cmbRol.getSelectedItem(),
+                    chkActivo.isSelected());
 
-            if (nombre.isEmpty() || apellidos.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                UIFactory.showError(dlg, "Nombre, apellidos, email y contraseña son obligatorios.");
+            if (error.isPresent()) {
+                UIFactory.showError(dlg, error.get());
                 return;
             }
-            if (!email.contains("@")) {
-                UIFactory.showError(dlg, "El email no tiene un formato válido.");
-                return;
-            }
-            try {
-                if (esNuevo) {
-                    if (dao.buscarPorEmail(email).isPresent()) {
-                        UIFactory.showError(dlg, "Ya existe un usuario con ese email.");
-                        return;
-                    }
-                    dao.guardar(new User(nombre, apellidos, email, password,
-                            (User.Rol) cmbRol.getSelectedItem()));
-                } else {
-                    usuario.setNombre(nombre);
-                    usuario.setApellidos(apellidos);
-                    usuario.setEmail(email);
-                    usuario.setPassword(password);
-                    usuario.setRol((User.Rol) cmbRol.getSelectedItem());
-                    usuario.setActivo(chkActivo.isSelected());
-                    dao.actualizar(usuario);
-                }
-                UIFactory.showSuccess(dlg, "Usuario guardado correctamente.");
-                dlg.dispose();
-                cargarDatos();
-            } catch (Exception ex) {
-                UIFactory.showError(dlg, "Error: " + ex.getMessage());
-            }
+            UIFactory.showSuccess(dlg, "Usuario guardado correctamente.");
+            dlg.dispose();
+            cargarDatos();
         });
 
         btns.add(btnCancel); btns.add(btnOk);
@@ -194,9 +179,10 @@ public class UsersPanel extends JPanel {
         User u = lista.get(row);
         String accion = u.isActivo() ? "desactivar" : "activar";
         if (UIFactory.showConfirm(this, "¿Deseas " + accion + " al usuario '" + u.getNombreCompleto() + "'?")) {
-            u.setActivo(!u.isActivo());
-            dao.actualizar(u);
-            cargarDatos();
+            controller.cambiarEstadoActivo(u).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                this::cargarDatos
+            );
         }
     }
 }

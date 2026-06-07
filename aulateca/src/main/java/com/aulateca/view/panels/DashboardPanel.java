@@ -1,7 +1,9 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.*;
-import com.aulateca.model.*;
+import com.aulateca.controller.DashboardController;
+import com.aulateca.model.Reservation;
+import com.aulateca.model.User;
+import com.aulateca.service.dto.DashboardStats;
 import com.aulateca.view.*;
 
 import javax.swing.*;
@@ -12,13 +14,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-/** Panel de inicio con estadísticas y reservas de hoy. */
+/** Panel de inicio con estadísticas y reservas de hoy (capa Vista). */
 public class DashboardPanel extends JPanel {
 
-    private final User            usuario;
-    private final ReservationDAO  reservationDAO = new ReservationDAO();
-    private final ResourceDAO     resourceDAO    = new ResourceDAO();
-    private final UserDAO         userDAO        = new UserDAO();
+    private final User                 usuario;
+    private final DashboardController  controller = new DashboardController();
 
     public DashboardPanel(User usuario) {
         this.usuario = usuario;
@@ -53,22 +53,25 @@ public class DashboardPanel extends JPanel {
         header.add(headerText, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
+        var statsResult = controller.obtenerEstadisticas();
+        if (statsResult.esError()) {
+            add(new JLabel(statsResult.error(), SwingConstants.CENTER), BorderLayout.CENTER);
+            return;
+        }
+
+        DashboardStats stats = statsResult.datos();
         JPanel statsRow = new JPanel(new GridLayout(1, 4, 16, 0));
         statsRow.setOpaque(false);
-
-        long totalRecursos = resourceDAO.contar();
-        long reservasHoy   = reservationDAO.buscarPorFecha(LocalDate.now()).size();
-        long proximas      = reservationDAO.buscarProximas().size();
-        long usuarios      = userDAO.buscarActivos().size();
-
-        statsRow.add(statCard("Recursos totales",  String.valueOf(totalRecursos), AppColors.PRIMARY,    "🏫"));
-        statsRow.add(statCard("Reservas hoy",       String.valueOf(reservasHoy),   AppColors.CHIP_GREEN, "📅"));
-        statsRow.add(statCard("Próximas reservas",  String.valueOf(proximas),       AppColors.CHIP_YELLOW,"✅"));
-        statsRow.add(statCard("Usuarios activos",   String.valueOf(usuarios),       AppColors.CHIP_PURPLE,"👥"));
+        statsRow.add(statCard("Recursos totales",  String.valueOf(stats.totalRecursos()),    AppColors.PRIMARY,     "🏫"));
+        statsRow.add(statCard("Reservas hoy",       String.valueOf(stats.reservasHoy()),     AppColors.CHIP_GREEN,  "📅"));
+        statsRow.add(statCard("Próximas reservas",  String.valueOf(stats.proximasReservas()), AppColors.CHIP_YELLOW, "✅"));
+        statsRow.add(statCard("Usuarios activos",   String.valueOf(stats.usuariosActivos()),  AppColors.CHIP_PURPLE, "👥"));
         add(statsRow, BorderLayout.CENTER);
 
-        JPanel tableCard = buildTableCard();
-        add(tableCard, BorderLayout.SOUTH);
+        var reservasResult = controller.reservasDeHoy();
+        if (!reservasResult.esError()) {
+            add(buildTableCard(reservasResult.datos()), BorderLayout.SOUTH);
+        }
     }
 
     private JPanel statCard(String label, String value, Color accentColor, String icon) {
@@ -109,7 +112,7 @@ public class DashboardPanel extends JPanel {
         return card;
     }
 
-    private JPanel buildTableCard() {
+    private JPanel buildTableCard(List<Reservation> reservas) {
         JPanel card = new JPanel(new BorderLayout(0, 12)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -136,7 +139,6 @@ public class DashboardPanel extends JPanel {
         cardHeader.add(fechaLbl, BorderLayout.EAST);
         card.add(cardHeader, BorderLayout.NORTH);
 
-        List<Reservation> reservas = reservationDAO.buscarPorFecha(LocalDate.now());
         String[] cols = {"Recurso", "Franja horaria", "Usuario", "Motivo", "Estado"};
         Object[][] data = new Object[reservas.size()][5];
         for (int i = 0; i < reservas.size(); i++) {

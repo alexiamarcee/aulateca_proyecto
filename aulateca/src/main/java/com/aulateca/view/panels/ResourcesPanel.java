@@ -1,6 +1,6 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.*;
+import com.aulateca.controller.ResourceController;
 import com.aulateca.model.*;
 import com.aulateca.view.*;
 
@@ -9,12 +9,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/** CRUD de recursos. */
+/** CRUD de recursos (capa Vista). */
 public class ResourcesPanel extends JPanel {
 
-    private final ResourceDAO resourceDAO = new ResourceDAO();
-    private final ResourceTypeDAO typeDAO = new ResourceTypeDAO();
-    private final ResourceStatusDAO statusDAO = new ResourceStatusDAO();
+    private final ResourceController controller = new ResourceController();
 
     private JTable tabla;
     private DefaultTableModel modelo;
@@ -70,7 +68,13 @@ public class ResourcesPanel extends JPanel {
 
     private void cargarDatos() {
         modelo.setRowCount(0);
-        listaActual = resourceDAO.buscarTodos();
+        var resultado = controller.listarRecursos();
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            listaActual = List.of();
+            return;
+        }
+        listaActual = resultado.datos();
         for (Resource r : listaActual) {
             modelo.addRow(new Object[]{
                 r.getId(), r.getNombre(),
@@ -83,15 +87,21 @@ public class ResourcesPanel extends JPanel {
     }
 
     private void abrirFormulario(Resource recurso) {
+        var tiposResult   = controller.listarTipos();
+        var estadosResult = controller.listarEstados();
+        if (tiposResult.esError() || estadosResult.esError()) {
+            UIFactory.showError(this, "No se pudieron cargar tipos y estados.");
+            return;
+        }
+        List<ResourceType>   tipos   = tiposResult.datos();
+        List<ResourceStatus> estados = estadosResult.datos();
+
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame ? (Frame) w : null;
 
-        List<ResourceType>   tipos   = typeDAO.buscarTodos();
-        List<ResourceStatus> estados = statusDAO.buscarTodos();
-
         JDialog dlg = new JDialog(frame,
             recurso == null ? "Nuevo recurso" : "Editar recurso", true);
-        dlg.setSize(480, 580);
+        dlg.setSize(480, 520);
         dlg.setLocationRelativeTo(frame);
 
         JPanel root = new JPanel(new BorderLayout());
@@ -109,7 +119,7 @@ public class ResourcesPanel extends JPanel {
         gbc.insets = new Insets(6, 0, 6, 0);
         gbc.gridx = 0; gbc.weightx = 1.0;
 
-        JTextField txtNombre   = UIFactory.textField(20);
+        JTextField txtNombre      = UIFactory.textField(20);
         JTextArea  txtDescripcion = new JTextArea(3, 20);
         JTextField txtUbicacion   = UIFactory.textField(20);
         JComboBox<ResourceType>   cmbTipo   = UIFactory.comboBox();
@@ -145,32 +155,23 @@ public class ResourcesPanel extends JPanel {
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
             String nombre = txtNombre.getText().trim();
-            if (nombre.isEmpty()) {
-                UIFactory.showError(dlg, "El nombre es obligatorio.");
+            String desc   = txtDescripcion.getText().trim();
+            String ubi    = txtUbicacion.getText().trim();
+            var error = (recurso == null)
+                ? controller.crear(nombre, desc,
+                    (ResourceType) cmbTipo.getSelectedItem(),
+                    (ResourceStatus) cmbEstado.getSelectedItem(), ubi)
+                : controller.actualizar(recurso, nombre, desc,
+                    (ResourceType) cmbTipo.getSelectedItem(),
+                    (ResourceStatus) cmbEstado.getSelectedItem(), ubi);
+
+            if (error.isPresent()) {
+                UIFactory.showError(dlg, error.get());
                 return;
             }
-            try {
-                if (recurso == null) {
-                    Resource r = new Resource(nombre,
-                        txtDescripcion.getText().trim().isEmpty() ? null : txtDescripcion.getText().trim(),
-                        (ResourceType) cmbTipo.getSelectedItem(),
-                        (ResourceStatus) cmbEstado.getSelectedItem(),
-                        txtUbicacion.getText().trim().isEmpty() ? null : txtUbicacion.getText().trim());
-                    resourceDAO.guardar(r);
-                } else {
-                    recurso.setNombre(nombre);
-                    recurso.setDescripcion(txtDescripcion.getText().trim().isEmpty() ? null : txtDescripcion.getText().trim());
-                    recurso.setTipo((ResourceType) cmbTipo.getSelectedItem());
-                    recurso.setEstado((ResourceStatus) cmbEstado.getSelectedItem());
-                    recurso.setUbicacion(txtUbicacion.getText().trim().isEmpty() ? null : txtUbicacion.getText().trim());
-                    resourceDAO.actualizar(recurso);
-                }
-                UIFactory.showSuccess(dlg, "Recurso guardado correctamente.");
-                dlg.dispose();
-                cargarDatos();
-            } catch (Exception ex) {
-                UIFactory.showError(dlg, "Error: " + ex.getMessage());
-            }
+            UIFactory.showSuccess(dlg, "Recurso guardado correctamente.");
+            dlg.dispose();
+            cargarDatos();
         });
         btns.add(btnCancel);
         btns.add(btnOk);
@@ -190,12 +191,10 @@ public class ResourcesPanel extends JPanel {
         Resource r = listaActual.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar el recurso '" + r.getNombre() + "'?\n" +
             "Se eliminarán también todas sus reservas.")) {
-            try {
-                resourceDAO.eliminar(r.getId());
-                cargarDatos();
-            } catch (Exception ex) {
-                UIFactory.showError(this, "No se puede eliminar: " + ex.getMessage());
-            }
+            controller.eliminar(r.getId()).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                this::cargarDatos
+            );
         }
     }
 }

@@ -1,7 +1,8 @@
 package com.aulateca.view.panels;
 
+import com.aulateca.controller.ReservationController;
 import com.aulateca.model.*;
-import com.aulateca.service.ReservationService;
+import com.aulateca.service.dto.DisponibilidadCheckResult;
 import com.aulateca.view.*;
 import com.toedter.calendar.JDateChooser;
 
@@ -12,15 +13,15 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-/** Formulario de nueva o edición de reserva. */
+/** Formulario de nueva o edición de reserva (capa Vista). */
 public class ReservationFormDialog extends JDialog {
 
-    private final Reservation      reserva;
-    private final User             usuarioActual;
-    private final List<Resource>   recursos;
-    private final List<User>       usuarios;
-    private final List<TimeSlot>   franjas;
-    private final ReservationService service;
+    private final Reservation           reserva;
+    private final User                  usuarioActual;
+    private final List<Resource>        recursos;
+    private final List<User>            usuarios;
+    private final List<TimeSlot>        franjas;
+    private final ReservationController controller;
 
     private JComboBox<User>     cmbUsuario;
     private JComboBox<Resource> cmbRecurso;
@@ -32,14 +33,14 @@ public class ReservationFormDialog extends JDialog {
 
     public ReservationFormDialog(Frame parent, Reservation reserva, User usuarioActual,
                                   List<Resource> recursos, List<User> usuarios,
-                                  List<TimeSlot> franjas, ReservationService service) {
+                                  List<TimeSlot> franjas, ReservationController controller) {
         super(parent, reserva == null ? "Nueva reserva" : "Editar reserva", true);
         this.reserva       = reserva;
         this.usuarioActual = usuarioActual;
         this.recursos      = recursos;
         this.usuarios      = usuarios;
         this.franjas       = franjas;
-        this.service       = service;
+        this.controller    = controller;
         initUI();
         if (reserva != null) rellenarDatos();
         pack();
@@ -160,57 +161,49 @@ public class ReservationFormDialog extends JDialog {
         return d == null ? null : d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    /** Delega la comprobación de disponibilidad al controlador. */
     private void comprobarDisponibilidad() {
-        Resource  recurso = (Resource)  cmbRecurso.getSelectedItem();
-        TimeSlot  franja  = (TimeSlot)  cmbFranja.getSelectedItem();
-        LocalDate fecha   = getFecha();
-
-        if (fecha == null)   { lblDisponibilidad.setText("Selecciona una fecha."); lblDisponibilidad.setForeground(AppColors.WARNING); return; }
-        if (recurso == null) { lblDisponibilidad.setText("Selecciona un recurso."); lblDisponibilidad.setForeground(AppColors.WARNING); return; }
-
-        if (!recurso.getEstado().isReservable()) {
-            lblDisponibilidad.setText("✕  El recurso no está disponible (" + recurso.getEstado().getNombre() + ")");
-            lblDisponibilidad.setForeground(AppColors.ERROR);
-            return;
-        }
         Long excludeId = (reserva != null) ? reserva.getId() : null;
-        boolean conflicto = new com.aulateca.dao.ReservationDAO()
-            .existeConflicto(recurso, fecha, franja, excludeId);
+        DisponibilidadCheckResult resultado = controller.verificarDisponibilidad(
+            (Resource) cmbRecurso.getSelectedItem(),
+            getFecha(),
+            (TimeSlot) cmbFranja.getSelectedItem(),
+            excludeId);
 
-        if (conflicto) {
-            lblDisponibilidad.setText("✕  Ya existe una reserva para ese recurso, fecha y franja.");
-            lblDisponibilidad.setForeground(AppColors.ERROR);
-        } else {
-            lblDisponibilidad.setText("✓  Disponible — puedes guardar.");
-            lblDisponibilidad.setForeground(AppColors.SUCCESS);
-        }
+        String prefijo = switch (resultado.tipo()) {
+            case OK    -> "✓  ";
+            case AVISO -> "";
+            case ERROR -> "✕  ";
+        };
+        lblDisponibilidad.setText(prefijo + resultado.mensaje());
+        lblDisponibilidad.setForeground(switch (resultado.tipo()) {
+            case OK    -> AppColors.SUCCESS;
+            case AVISO -> AppColors.WARNING;
+            case ERROR -> AppColors.ERROR;
+        });
     }
 
+    /** Delega el guardado al controlador. */
     private void guardar() {
-        User      usuario = (User)      cmbUsuario.getSelectedItem();
-        Resource  recurso = (Resource)  cmbRecurso.getSelectedItem();
-        TimeSlot  franja  = (TimeSlot)  cmbFranja.getSelectedItem();
+        User      usuario = (User)     cmbUsuario.getSelectedItem();
+        Resource  recurso = (Resource) cmbRecurso.getSelectedItem();
+        TimeSlot  franja  = (TimeSlot) cmbFranja.getSelectedItem();
         LocalDate fecha   = getFecha();
         String    motivo  = txtMotivo.getText().trim();
+        String motivoFinal = motivo.isEmpty() ? null : motivo;
 
-        if (fecha == null) { UIFactory.showError(this, "Selecciona una fecha."); return; }
+        var error = (reserva == null)
+            ? controller.crearReserva(usuario, recurso, fecha, franja, motivoFinal)
+            : controller.modificarReserva(reserva.getId(), usuario, recurso, fecha, franja, motivoFinal);
 
-        try {
-            if (reserva == null) {
-                service.crearReserva(usuario, recurso, fecha, franja, motivo.isEmpty() ? null : motivo);
-                UIFactory.showSuccess(this, "Reserva creada correctamente.");
-            } else {
-                service.modificarReserva(reserva.getId(), usuario, recurso, fecha, franja,
-                    motivo.isEmpty() ? null : motivo);
-                UIFactory.showSuccess(this, "Reserva actualizada correctamente.");
-            }
-            saved = true;
-            dispose();
-        } catch (IllegalArgumentException ex) {
-            UIFactory.showError(this, ex.getMessage());
-        } catch (Exception ex) {
-            UIFactory.showError(this, "Error inesperado: " + ex.getMessage());
+        if (error.isPresent()) {
+            UIFactory.showError(this, error.get());
+            return;
         }
+        UIFactory.showSuccess(this, reserva == null ?
+            "Reserva creada correctamente." : "Reserva actualizada correctamente.");
+        saved = true;
+        dispose();
     }
 
     public boolean isSaved() { return saved; }

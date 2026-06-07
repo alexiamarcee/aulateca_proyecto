@@ -1,20 +1,19 @@
 package com.aulateca.view;
 
-import com.aulateca.dao.UserDAO;
+import com.aulateca.controller.LoginController;
 import com.aulateca.model.User;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
-import java.util.Optional;
 
-/** Diálogo de inicio de sesión. */
+/** Diálogo de inicio de sesión (capa Vista). */
 public class LoginDialog extends JDialog {
 
     private JTextField     txtEmail;
     private JPasswordField txtPassword;
     private User           usuarioAutenticado;
-    private final UserDAO  userDAO = new UserDAO();
+    private final LoginController controller = new LoginController();
 
     public LoginDialog(Frame parent) {
         super(parent, "Aulateca – Iniciar sesión", true);
@@ -118,22 +117,21 @@ public class LoginDialog extends JDialog {
         root.add(card);
     }
 
+    /** Delega la autenticación al controlador. */
     private void autenticar() {
-        String email = txtEmail.getText().trim();
-        String pass  = new String(txtPassword.getPassword());
-        if (email.isEmpty() || pass.isEmpty()) {
-            UIFactory.showError(this, "Introduce el correo y la contraseña.");
+        LoginController.AuthResult resultado = controller.iniciarSesion(
+            txtEmail.getText(), new String(txtPassword.getPassword()));
+
+        if (resultado.error() != null) {
+            UIFactory.showError(this, resultado.error());
+            if (resultado.usuario() == null && !txtEmail.getText().isBlank()) {
+                txtPassword.selectAll();
+                txtPassword.requestFocus();
+            }
             return;
         }
-        Optional<User> r = userDAO.autenticar(email, pass);
-        if (r.isPresent()) {
-            usuarioAutenticado = r.get();
-            dispose();
-        } else {
-            UIFactory.showError(this, "Correo o contraseña incorrectos.");
-            txtPassword.selectAll();
-            txtPassword.requestFocus();
-        }
+        usuarioAutenticado = resultado.usuario();
+        dispose();
     }
 
     public User getUsuarioAutenticado() { return usuarioAutenticado; }

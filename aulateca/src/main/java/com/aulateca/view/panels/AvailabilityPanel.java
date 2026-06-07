@@ -1,7 +1,9 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.*;
-import com.aulateca.model.*;
+import com.aulateca.controller.AvailabilityController;
+import com.aulateca.service.dto.DisponibilidadResultado;
+import com.aulateca.service.dto.DisponibilidadResultado.EstadoCelda;
+import com.aulateca.service.dto.DisponibilidadResultado.FilaDisponibilidad;
 import com.aulateca.view.*;
 import com.toedter.calendar.JDateChooser;
 
@@ -10,18 +12,13 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
-/** Consulta de disponibilidad por recurso y franja. */
+/** Consulta de disponibilidad por recurso y franja (capa Vista). */
 public class AvailabilityPanel extends JPanel {
 
-    private final ResourceDAO     resourceDAO     = new ResourceDAO();
-    private final TimeSlotDAO     timeSlotDAO     = new TimeSlotDAO();
-    private final ReservationDAO  reservationDAO  = new ReservationDAO();
-    private final ResourceTypeDAO resourceTypeDAO = new ResourceTypeDAO();
+    private final AvailabilityController controller = new AvailabilityController();
 
     private JDateChooser      dateChooser;
     private JComboBox<String> cmbTipo;
@@ -65,8 +62,10 @@ public class AvailabilityPanel extends JPanel {
 
         filterCard.add(UIFactory.formLabel("Tipo de recurso"));
         cmbTipo = new JComboBox<>();
-        cmbTipo.addItem("Todos los tipos");
-        resourceTypeDAO.buscarTodos().forEach(t -> cmbTipo.addItem(t.getNombre()));
+        var tiposResult = controller.nombresTiposRecurso();
+        if (!tiposResult.esError()) {
+            tiposResult.datos().forEach(cmbTipo::addItem);
+        }
         cmbTipo.setFont(UIFactory.FONT_BODY);
         cmbTipo.setPreferredSize(new Dimension(180, 36));
         filterCard.add(cmbTipo);
@@ -101,6 +100,7 @@ public class AvailabilityPanel extends JPanel {
         return p;
     }
 
+    /** Solicita la consulta al controlador y pinta la cuadrícula. */
     private void consultarDisponibilidad() {
         Date d = dateChooser.getDate();
         if (d == null) {
@@ -108,25 +108,27 @@ public class AvailabilityPanel extends JPanel {
             return;
         }
         LocalDate fecha = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-        List<TimeSlot> franjas  = timeSlotDAO.buscarTodos();
-        List<Resource> recursos = resourceDAO.buscarTodos();
-
         String tipoFiltro = (String) cmbTipo.getSelectedItem();
-        if (!"Todos los tipos".equals(tipoFiltro)) {
-            recursos = recursos.stream()
-                .filter(r -> r.getTipo().getNombre().equals(tipoFiltro))
-                .toList();
+
+        var resultado = controller.consultar(fecha, tipoFiltro);
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            return;
         }
 
+        mostrarResultado(resultado.datos());
+    }
+
+    private void mostrarResultado(DisponibilidadResultado datos) {
         gridPanel.removeAll();
 
-        if (recursos.isEmpty() || franjas.isEmpty()) {
+        if (datos.sinDatos()) {
             JLabel empty = new JLabel("Sin datos para los filtros seleccionados.", SwingConstants.CENTER);
             empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             empty.setForeground(AppColors.TEXT_HINT);
             gridPanel.add(empty, BorderLayout.CENTER);
-            gridPanel.revalidate(); gridPanel.repaint();
+            gridPanel.revalidate();
+            gridPanel.repaint();
             return;
         }
 
@@ -142,31 +144,26 @@ public class AvailabilityPanel extends JPanel {
         card.setOpaque(false);
         card.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        String fechaStr = fecha.format(DateTimeFormatter.ofPattern(
-            "EEEE, d 'de' MMMM 'de' yyyy", new Locale("es", "ES")));
-        fechaStr = Character.toUpperCase(fechaStr.charAt(0)) + fechaStr.substring(1);
-        JLabel fechaLbl = new JLabel(fechaStr);
+        JLabel fechaLbl = new JLabel(datos.fechaFormateada());
         fechaLbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         fechaLbl.setForeground(AppColors.TEXT_PRIMARY);
         card.add(fechaLbl, BorderLayout.NORTH);
 
+        List<String> franjas = datos.nombresFranjas();
         String[] columnas = new String[franjas.size() + 1];
         columnas[0] = "Recurso";
-        for (int i = 0; i < franjas.size(); i++) columnas[i + 1] = franjas.get(i).getNombre();
+        for (int i = 0; i < franjas.size(); i++) columnas[i + 1] = franjas.get(i);
 
-        Object[][] datos = new Object[recursos.size()][columnas.length];
-        for (int ri = 0; ri < recursos.size(); ri++) {
-            Resource recurso = recursos.get(ri);
-            datos[ri][0] = recurso.getNombre();
-            List<TimeSlot> ocupadas = reservationDAO.buscarFranjasOcupadas(recurso, fecha);
-            for (int fi = 0; fi < franjas.size(); fi++) {
-                if (!recurso.getEstado().isReservable())      datos[ri][fi+1] = "BLOQUEADO";
-                else if (ocupadas.contains(franjas.get(fi)))  datos[ri][fi+1] = "OCUPADO";
-                else                                           datos[ri][fi+1] = "LIBRE";
+        Object[][] gridData = new Object[datos.filas().size()][columnas.length];
+        for (int ri = 0; ri < datos.filas().size(); ri++) {
+            FilaDisponibilidad fila = datos.filas().get(ri);
+            gridData[ri][0] = fila.nombreRecurso();
+            for (int fi = 0; fi < fila.celdas().size(); fi++) {
+                gridData[ri][fi + 1] = fila.celdas().get(fi).name();
             }
         }
 
-        JTable grid = new JTable(datos, columnas) {
+        JTable grid = new JTable(gridData, columnas) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         grid.setFont(UIFactory.FONT_BODY);
@@ -195,12 +192,13 @@ public class AvailabilityPanel extends JPanel {
                     lbl.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
                     return lbl;
                 }
+                EstadoCelda estado = EstadoCelda.valueOf(val);
                 Color bg, fg;
                 String display;
-                switch (val) {
-                    case "OCUPADO"   -> { bg = AppColors.RESERVED;  fg = AppColors.RESERVED_FG;  display = "Ocupado"; }
-                    case "BLOQUEADO" -> { bg = AppColors.BLOCKED;   fg = AppColors.BLOCKED_FG;   display = "—"; }
-                    default          -> { bg = AppColors.AVAILABLE; fg = AppColors.AVAILABLE_FG; display = "Libre"; }
+                switch (estado) {
+                    case OCUPADO   -> { bg = AppColors.RESERVED;  fg = AppColors.RESERVED_FG;  display = "Ocupado"; }
+                    case BLOQUEADO -> { bg = AppColors.BLOCKED;   fg = AppColors.BLOCKED_FG;   display = "—"; }
+                    default        -> { bg = AppColors.AVAILABLE; fg = AppColors.AVAILABLE_FG; display = "Libre"; }
                 }
                 JLabel chip = new JLabel(display, SwingConstants.CENTER) {
                     @Override protected void paintComponent(Graphics g) {

@@ -1,6 +1,6 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.ResourceTypeDAO;
+import com.aulateca.controller.ResourceTypeController;
 import com.aulateca.model.ResourceType;
 import com.aulateca.view.*;
 
@@ -9,10 +9,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/** CRUD de tipos de recursos. */
+/** CRUD de tipos de recursos (capa Vista). */
 public class ResourceTypesPanel extends JPanel {
 
-    private final ResourceTypeDAO dao = new ResourceTypeDAO();
+    private final ResourceTypeController controller = new ResourceTypeController();
     private JTable tabla;
     private DefaultTableModel modelo;
     private List<ResourceType> lista;
@@ -53,7 +53,13 @@ public class ResourceTypesPanel extends JPanel {
 
     private void cargarDatos() {
         modelo.setRowCount(0);
-        lista = dao.buscarTodos();
+        var resultado = controller.listarTipos();
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            lista = List.of();
+            return;
+        }
+        lista = resultado.datos();
         lista.forEach(t -> modelo.addRow(new Object[]{
             t.getId(), t.getNombre(),
             t.getDescripcion() != null ? t.getDescripcion() : "—"
@@ -91,18 +97,15 @@ public class ResourceTypesPanel extends JPanel {
         JButton btnOk     = UIFactory.primaryButton("Guardar");
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
-            String n = txtNombre.getText().trim();
-            if (n.isEmpty()) { UIFactory.showError(dlg, "El nombre es obligatorio."); return; }
-            try {
-                if (tipo == null) {
-                    dao.guardar(new ResourceType(n, txtDesc.getText().trim().isEmpty() ? null : txtDesc.getText().trim()));
-                } else {
-                    tipo.setNombre(n);
-                    tipo.setDescripcion(txtDesc.getText().trim().isEmpty() ? null : txtDesc.getText().trim());
-                    dao.actualizar(tipo);
-                }
-                dlg.dispose(); cargarDatos();
-            } catch (Exception ex) { UIFactory.showError(dlg, ex.getMessage()); }
+            var error = (tipo == null)
+                ? controller.crear(txtNombre.getText(), txtDesc.getText())
+                : controller.actualizar(tipo, txtNombre.getText(), txtDesc.getText());
+            if (error.isPresent()) {
+                UIFactory.showError(dlg, error.get());
+                return;
+            }
+            dlg.dispose();
+            cargarDatos();
         });
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
@@ -114,8 +117,10 @@ public class ResourceTypesPanel extends JPanel {
         if (row < 0) { UIFactory.showError(this, "Selecciona un tipo."); return; }
         ResourceType t = lista.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar tipo '" + t.getNombre() + "'?")) {
-            try { dao.eliminar(t.getId()); cargarDatos(); }
-            catch (Exception ex) { UIFactory.showError(this, "No se puede eliminar: " + ex.getMessage()); }
+            controller.eliminar(t.getId()).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                this::cargarDatos
+            );
         }
     }
 }

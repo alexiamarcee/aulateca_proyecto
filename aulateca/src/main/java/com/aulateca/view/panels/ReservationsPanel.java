@@ -1,8 +1,7 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.*;
+import com.aulateca.controller.ReservationController;
 import com.aulateca.model.*;
-import com.aulateca.service.ReservationService;
 import com.aulateca.view.*;
 
 import javax.swing.*;
@@ -13,15 +12,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/** Gestión de reservas. */
+/** Gestión de reservas (capa Vista). */
 public class ReservationsPanel extends JPanel {
 
-    private final User              usuarioActual;
-    private final ReservationService service       = new ReservationService();
-    private final ReservationDAO     reservationDAO = new ReservationDAO();
-    private final ResourceDAO        resourceDAO    = new ResourceDAO();
-    private final UserDAO            userDAO        = new UserDAO();
-    private final TimeSlotDAO        timeSlotDAO    = new TimeSlotDAO();
+    private final User                  usuarioActual;
+    private final ReservationController controller = new ReservationController();
 
     private JTable            tabla;
     private DefaultTableModel modelo;
@@ -153,18 +148,16 @@ public class ReservationsPanel extends JPanel {
         add(hint, BorderLayout.SOUTH);
     }
 
+    /** Solicita las reservas al controlador y actualiza la tabla. */
     private void cargarReservas() {
         modelo.setRowCount(0);
-        int filtro = cmbFiltro.getSelectedIndex();
-        reservasActuales = switch (filtro) {
-            case 1  -> service.obtenerProximas();
-            case 2  -> service.obtenerPorFecha(LocalDate.now());
-            case 3  -> {
-                LocalDate ini = LocalDate.now().withDayOfMonth(1);
-                yield service.obtenerEntreFechas(ini, ini.plusMonths(1).minusDays(1));
-            }
-            default -> service.obtenerTodas();
-        };
+        var resultado = controller.listarReservas(cmbFiltro.getSelectedIndex());
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            reservasActuales = List.of();
+            return;
+        }
+        reservasActuales = resultado.datos();
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Reservation r : reservasActuales) {
@@ -181,11 +174,19 @@ public class ReservationsPanel extends JPanel {
     }
 
     private void abrirFormulario(Reservation reserva) {
+        var recursos  = controller.listarRecursos();
+        var usuarios  = controller.listarUsuariosActivos();
+        var franjas   = controller.listarFranjas();
+        if (recursos.esError() || usuarios.esError() || franjas.esError()) {
+            UIFactory.showError(this, "No se pudieron cargar los datos del formulario.");
+            return;
+        }
+
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame f ? f : null;
-        ReservationFormDialog dlg = new ReservationFormDialog(frame, reserva, usuarioActual,
-            resourceDAO.buscarTodos(), userDAO.buscarActivos(),
-            timeSlotDAO.buscarTodos(), service);
+        ReservationFormDialog dlg = new ReservationFormDialog(
+            frame, reserva, usuarioActual,
+            recursos.datos(), usuarios.datos(), franjas.datos(), controller);
         dlg.setVisible(true);
         if (dlg.isSaved()) cargarReservas();
     }
@@ -200,13 +201,10 @@ public class ReservationsPanel extends JPanel {
         }
         if (UIFactory.showConfirm(this, "¿Cancelar la reserva de «" + r.getRecurso().getNombre()
                 + "» el " + r.getFecha() + "?")) {
-            try {
-                service.cancelarReserva(r.getId());
-                UIFactory.showSuccess(this, "Reserva cancelada.");
-                cargarReservas();
-            } catch (Exception ex) {
-                UIFactory.showError(this, ex.getMessage());
-            }
+            controller.cancelarReserva(r.getId()).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                () -> { UIFactory.showSuccess(this, "Reserva cancelada."); cargarReservas(); }
+            );
         }
     }
 

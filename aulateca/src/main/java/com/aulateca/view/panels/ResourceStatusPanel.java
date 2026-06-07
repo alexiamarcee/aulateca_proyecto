@@ -1,6 +1,6 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.ResourceStatusDAO;
+import com.aulateca.controller.ResourceStatusController;
 import com.aulateca.model.ResourceStatus;
 import com.aulateca.view.*;
 
@@ -9,10 +9,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/** CRUD de estados de recursos. */
+/** CRUD de estados de recursos (capa Vista). */
 public class ResourceStatusPanel extends JPanel {
 
-    private final ResourceStatusDAO dao = new ResourceStatusDAO();
+    private final ResourceStatusController controller = new ResourceStatusController();
     private JTable tabla;
     private DefaultTableModel modelo;
     private List<ResourceStatus> lista;
@@ -53,7 +53,13 @@ public class ResourceStatusPanel extends JPanel {
 
     private void cargarDatos() {
         modelo.setRowCount(0);
-        lista = dao.buscarTodos();
+        var resultado = controller.listarEstados();
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            lista = List.of();
+            return;
+        }
+        lista = resultado.datos();
         lista.forEach(s -> modelo.addRow(new Object[]{
             s.getId(), s.getNombre(),
             s.getDescripcion() != null ? s.getDescripcion() : "—",
@@ -100,21 +106,15 @@ public class ResourceStatusPanel extends JPanel {
         JButton btnOk     = UIFactory.primaryButton("Guardar");
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
-            String n = txtNombre.getText().trim();
-            if (n.isEmpty()) { UIFactory.showError(dlg, "El nombre es obligatorio."); return; }
-            try {
-                if (estado == null) {
-                    dao.guardar(new ResourceStatus(n,
-                        txtDesc.getText().trim().isEmpty() ? null : txtDesc.getText().trim(),
-                        chkRes.isSelected()));
-                } else {
-                    estado.setNombre(n);
-                    estado.setDescripcion(txtDesc.getText().trim().isEmpty() ? null : txtDesc.getText().trim());
-                    estado.setReservable(chkRes.isSelected());
-                    dao.actualizar(estado);
-                }
-                dlg.dispose(); cargarDatos();
-            } catch (Exception ex) { UIFactory.showError(dlg, ex.getMessage()); }
+            var error = (estado == null)
+                ? controller.crear(txtNombre.getText(), txtDesc.getText(), chkRes.isSelected())
+                : controller.actualizar(estado, txtNombre.getText(), txtDesc.getText(), chkRes.isSelected());
+            if (error.isPresent()) {
+                UIFactory.showError(dlg, error.get());
+                return;
+            }
+            dlg.dispose();
+            cargarDatos();
         });
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
@@ -126,8 +126,10 @@ public class ResourceStatusPanel extends JPanel {
         if (row < 0) { UIFactory.showError(this, "Selecciona un estado."); return; }
         ResourceStatus s = lista.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar estado '" + s.getNombre() + "'?")) {
-            try { dao.eliminar(s.getId()); cargarDatos(); }
-            catch (Exception ex) { UIFactory.showError(this, "No se puede eliminar: " + ex.getMessage()); }
+            controller.eliminar(s.getId()).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                this::cargarDatos
+            );
         }
     }
 }

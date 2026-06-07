@@ -1,6 +1,6 @@
 package com.aulateca.view.panels;
 
-import com.aulateca.dao.TimeSlotDAO;
+import com.aulateca.controller.TimeSlotController;
 import com.aulateca.model.TimeSlot;
 import com.aulateca.view.*;
 
@@ -10,10 +10,10 @@ import java.awt.*;
 import java.time.LocalTime;
 import java.util.List;
 
-/** CRUD de franjas horarias. */
+/** CRUD de franjas horarias (capa Vista). */
 public class TimeSlotsPanel extends JPanel {
 
-    private final TimeSlotDAO dao = new TimeSlotDAO();
+    private final TimeSlotController controller = new TimeSlotController();
     private JTable tabla;
     private DefaultTableModel modelo;
     private List<TimeSlot> lista;
@@ -70,7 +70,13 @@ public class TimeSlotsPanel extends JPanel {
 
     private void cargarDatos() {
         modelo.setRowCount(0);
-        lista = dao.buscarTodos();
+        var resultado = controller.listarFranjas();
+        if (resultado.esError()) {
+            UIFactory.showError(this, resultado.error());
+            lista = List.of();
+            return;
+        }
+        lista = resultado.datos();
         lista.forEach(ts -> modelo.addRow(new Object[]{
             ts.getId(), ts.getNombre(),
             ts.getHoraInicio().toString(),
@@ -93,10 +99,10 @@ public class TimeSlotsPanel extends JPanel {
 
         root.add(UIFactory.sectionTitle(slot == null ? "Nueva franja horaria" : "Editar franja"), BorderLayout.NORTH);
 
-        JTextField txtNombre    = UIFactory.textField(20);
-        JTextField txtHoraIni   = UIFactory.textField(8);
-        JTextField txtHoraFin   = UIFactory.textField(8);
-        JSpinner   spinOrden    = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
+        JTextField txtNombre  = UIFactory.textField(20);
+        JTextField txtHoraIni = UIFactory.textField(8);
+        JTextField txtHoraFin = UIFactory.textField(8);
+        JSpinner   spinOrden  = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
 
         if (slot != null) {
             txtNombre.setText(slot.getNombre());
@@ -129,41 +135,25 @@ public class TimeSlotsPanel extends JPanel {
         JButton btnOk     = UIFactory.primaryButton("Guardar");
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
-            String nombre = txtNombre.getText().trim();
-            String iniStr = txtHoraIni.getText().trim();
-            String finStr = txtHoraFin.getText().trim();
-            if (nombre.isEmpty() || iniStr.isEmpty() || finStr.isEmpty()) {
-                UIFactory.showError(dlg, "Nombre, hora de inicio y hora de fin son obligatorios.");
+            var iniResult = controller.parsearHora(txtHoraIni.getText());
+            if (iniResult.esError()) { UIFactory.showError(dlg, iniResult.error()); return; }
+            var finResult = controller.parsearHora(txtHoraFin.getText());
+            if (finResult.esError()) { UIFactory.showError(dlg, finResult.error()); return; }
+
+            LocalTime ini = iniResult.datos();
+            LocalTime fin = finResult.datos();
+            int orden = (int) spinOrden.getValue();
+
+            var error = (slot == null)
+                ? controller.crear(txtNombre.getText(), ini, fin, orden)
+                : controller.actualizar(slot, txtNombre.getText(), ini, fin, orden);
+
+            if (error.isPresent()) {
+                UIFactory.showError(dlg, error.get());
                 return;
             }
-            LocalTime ini, fin;
-            try {
-                ini = LocalTime.parse(iniStr);
-                fin = LocalTime.parse(finStr);
-            } catch (Exception ex) {
-                UIFactory.showError(dlg, "Formato de hora incorrecto. Usa HH:mm (ej: 08:30).");
-                return;
-            }
-            if (!fin.isAfter(ini)) {
-                UIFactory.showError(dlg, "La hora de fin debe ser posterior a la hora de inicio.");
-                return;
-            }
-            try {
-                int orden = (int) spinOrden.getValue();
-                if (slot == null) {
-                    dao.guardar(new TimeSlot(nombre, ini, fin, orden));
-                } else {
-                    slot.setNombre(nombre);
-                    slot.setHoraInicio(ini);
-                    slot.setHoraFin(fin);
-                    slot.setOrden(orden);
-                    dao.actualizar(slot);
-                }
-                dlg.dispose();
-                cargarDatos();
-            } catch (Exception ex) {
-                UIFactory.showError(dlg, "Error: " + ex.getMessage());
-            }
+            dlg.dispose();
+            cargarDatos();
         });
         btns.add(btnCancel); btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
@@ -176,12 +166,10 @@ public class TimeSlotsPanel extends JPanel {
         TimeSlot ts = lista.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar la franja '" + ts.getNombre() + "'?\n" +
                 "Se eliminarán también las reservas asociadas.")) {
-            try {
-                dao.eliminar(ts.getId());
-                cargarDatos();
-            } catch (Exception ex) {
-                UIFactory.showError(this, "No se puede eliminar: " + ex.getMessage());
-            }
+            controller.eliminar(ts.getId()).ifPresentOrElse(
+                msg -> UIFactory.showError(this, msg),
+                this::cargarDatos
+            );
         }
     }
 }
