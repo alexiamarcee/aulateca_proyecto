@@ -44,7 +44,7 @@ public class ReservationsPanel extends JPanel {
         toolbar.setOpaque(false);
 
         cmbFiltro = new JComboBox<>(new String[]{
-            "Todas", "Próximas", "Hoy", "Este mes"});
+                "Todas", "Próximas", "Hoy", "Este mes"});
         cmbFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbFiltro.setPreferredSize(new Dimension(150, 36));
         cmbFiltro.addActionListener(e -> cargarReservas());
@@ -92,7 +92,7 @@ public class ReservationsPanel extends JPanel {
 
         tabla.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable t, Object v,
-                    boolean sel, boolean foc, int row, int col) {
+                                                                     boolean sel, boolean foc, int row, int col) {
                 JPanel p = new JPanel();
                 p.setOpaque(true);
                 p.setBackground(sel ? AppColors.ROW_SELECTED : AppColors.BG_WHITE);
@@ -111,7 +111,7 @@ public class ReservationsPanel extends JPanel {
 
         tabla.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable t, Object v,
-                    boolean sel, boolean foc, int row, int col) {
+                                                                     boolean sel, boolean foc, int row, int col) {
                 String val = v != null ? v.toString() : "";
                 Color bg = switch (val) {
                     case "CONFIRMADA" -> AppColors.AVAILABLE;
@@ -162,13 +162,13 @@ public class ReservationsPanel extends JPanel {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Reservation r : reservasActuales) {
             modelo.addRow(new Object[]{
-                "",
-                r.getRecurso().getNombre(),
-                r.getFecha().format(fmt),
-                r.getFranjaHoraria().getNombre(),
-                r.getUsuario().getNombreCompleto(),
-                r.getMotivo() != null ? r.getMotivo() : "—",
-                r.getEstado().name()
+                    "",
+                    r.getRecurso().getNombre(),
+                    r.getFecha().format(fmt),
+                    r.getFranjaHoraria().getNombre(),
+                    r.getUsuario().getNombreCompleto(),
+                    r.getMotivo() != null ? r.getMotivo() : "—",
+                    r.getEstado().name()
             });
         }
     }
@@ -183,14 +183,14 @@ public class ReservationsPanel extends JPanel {
         }
 
         List<User> usuariosForm = usuarioActual.puedeGestionarReservasAjena()
-            ? usuarios.datos()
-            : List.of(usuarioActual);
+                ? usuarios.datos()
+                : List.of(usuarioActual);
 
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame f ? f : null;
         ReservationFormDialog dlg = new ReservationFormDialog(
-            frame, reserva, usuarioActual,
-            recursos.datos(), usuariosForm, franjas.datos(), controller);
+                frame, reserva, usuarioActual,
+                recursos.datos(), usuariosForm, franjas.datos(), controller);
         dlg.setVisible(true);
         if (dlg.isSaved()) cargarReservas();
     }
@@ -206,8 +206,8 @@ public class ReservationsPanel extends JPanel {
         if (UIFactory.showConfirm(this, "¿Cancelar la reserva de «" + r.getRecurso().getNombre()
                 + "» el " + r.getFecha() + "?")) {
             controller.cancelarReserva(usuarioActual, r.getId()).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                () -> { UIFactory.showSuccess(this, "Reserva cancelada."); cargarReservas(); }
+                    msg -> UIFactory.showError(this, msg),
+                    () -> { UIFactory.showSuccess(this, "Reserva cancelada."); cargarReservas(); }
             );
         }
     }
@@ -217,13 +217,13 @@ public class ReservationsPanel extends JPanel {
         if (row < 0) return;
         Reservation r = reservasActuales.get(row);
         String msg = "<html><b>Reserva #" + r.getId() + "</b><br><br>"
-            + "<b>Recurso:</b> " + r.getRecurso().getNombre() + "<br>"
-            + "<b>Tipo:</b> "    + r.getRecurso().getTipo().getNombre() + "<br>"
-            + "<b>Fecha:</b> "   + r.getFecha() + "<br>"
-            + "<b>Franja:</b> "  + r.getFranjaHoraria() + "<br>"
-            + "<b>Usuario:</b> " + r.getUsuario().getNombreCompleto() + "<br>"
-            + "<b>Motivo:</b> "  + (r.getMotivo() != null ? r.getMotivo() : "—") + "<br>"
-            + "<b>Estado:</b> "  + r.getEstado() + "</html>";
+                + "<b>Recurso:</b> " + r.getRecurso().getNombre() + "<br>"
+                + "<b>Tipo:</b> "    + r.getRecurso().getTipo().getNombre() + "<br>"
+                + "<b>Fecha:</b> "   + r.getFecha() + "<br>"
+                + "<b>Franja:</b> "  + r.getFranjaHoraria() + "<br>"
+                + "<b>Usuario:</b> " + r.getUsuario().getNombreCompleto() + "<br>"
+                + "<b>Motivo:</b> "  + (r.getMotivo() != null ? r.getMotivo() : "—") + "<br>"
+                + "<b>Estado:</b> "  + r.getEstado() + "</html>";
         JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.PLAIN_MESSAGE);
     }
 }

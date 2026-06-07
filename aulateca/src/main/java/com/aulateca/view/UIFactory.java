@@ -20,6 +20,39 @@ public class UIFactory {
     public static final Font FONT_SMALL  = new Font("Roboto",      Font.PLAIN,  11);
     public static final Font FONT_BOLD   = new Font("Roboto",      Font.BOLD,   13);
     public static final Font FONT_BUTTON = new Font("Google Sans", Font.PLAIN,  13);
+    public static final Font FONT_SECTION = new Font("Segoe UI", Font.PLAIN, 20);
+    private static final int EMOJI_SIZE_SECTION = 16;
+    private static final int EMOJI_SIZE_BUTTON  = 12;
+
+    public static Font emojiFont(int size) {
+        // Segoe UI Emoji solo existe en Windows; en Linux/Mac usamos Dialog
+        // para evitar que los simbolos se muestren como cuadrados (tofu).
+        String family = isFontAvailable("Segoe UI Emoji") ? "Segoe UI Emoji"
+                : isFontAvailable("Apple Color Emoji") ? "Apple Color Emoji"
+                  : "Dialog";
+        return new Font(family, Font.PLAIN, size);
+    }
+
+    /** Fila icono + texto alineados verticalmente al centro. */
+    private static JPanel iconTextRow(String icon, String text, Font textFont,
+                                      int emojiSize, int gap) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.setOpaque(false);
+        if (icon != null && !icon.isBlank()) {
+            JLabel iconLbl = new JLabel(icon);
+            iconLbl.setFont(emojiFont(emojiSize));
+            iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
+            panel.add(iconLbl);
+            panel.add(Box.createHorizontalStrut(gap));
+        }
+        JLabel textLbl = new JLabel(text);
+        textLbl.setFont(textFont);
+        textLbl.setForeground(AppColors.TEXT_PRIMARY);
+        textLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
+        panel.add(textLbl);
+        return panel;
+    }
 
     static {
         if (!isFontAvailable("Google Sans")) {
@@ -53,16 +86,16 @@ public class UIFactory {
     }
 
     public static JButton secondaryButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(FONT_BUTTON);
+        JButton btn = new JButton();
+        configureButtonText(btn, text, FONT_BUTTON);
         btn.setForeground(AppColors.PRIMARY);
         btn.setBackground(AppColors.BG_WHITE);
         btn.setFocusPainted(false);
         btn.setOpaque(true);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppColors.BORDER, 1, true),
-            BorderFactory.createEmptyBorder(7, 18, 7, 18)
+                BorderFactory.createLineBorder(AppColors.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(7, 18, 7, 18)
         ));
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btn.setBackground(AppColors.PRIMARY_LIGHT); }
@@ -90,7 +123,7 @@ public class UIFactory {
     }
 
     private static JButton makeButton(String text, Color bg, Color fg, boolean filled) {
-        JButton btn = new JButton(text) {
+        JButton btn = new JButton() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -100,14 +133,14 @@ public class UIFactory {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(FONT_BUTTON);
+        configureButtonText(btn, text, FONT_BUTTON);
         btn.setForeground(fg);
         btn.setBackground(bg);
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 24, 8, 24));
         Color hoverColor = bg.darker();
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btn.setBackground(hoverColor); btn.repaint(); }
@@ -121,19 +154,19 @@ public class UIFactory {
         tf.setFont(FONT_BODY);
         tf.setForeground(AppColors.TEXT_PRIMARY);
         tf.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppColors.BORDER, 1),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                BorderFactory.createLineBorder(AppColors.BORDER, 1),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
         tf.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
-                    BorderFactory.createEmptyBorder(7, 11, 7, 11)));
+                        BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
+                        BorderFactory.createEmptyBorder(7, 11, 7, 11)));
             }
             public void focusLost(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(AppColors.BORDER, 1),
-                    BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+                        BorderFactory.createLineBorder(AppColors.BORDER, 1),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)));
             }
         });
         return tf;
@@ -141,21 +174,22 @@ public class UIFactory {
 
     public static JPasswordField passwordField(int columns) {
         JPasswordField pf = new JPasswordField(columns);
-        pf.setFont(FONT_BODY);
+        pf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        pf.setEchoChar('*');
         pf.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppColors.BORDER, 1),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                BorderFactory.createLineBorder(AppColors.BORDER, 1),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
         pf.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent e) {
                 pf.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
-                    BorderFactory.createEmptyBorder(7, 11, 7, 11)));
+                        BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
+                        BorderFactory.createEmptyBorder(7, 11, 7, 11)));
             }
             public void focusLost(java.awt.event.FocusEvent e) {
                 pf.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(AppColors.BORDER, 1),
-                    BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+                        BorderFactory.createLineBorder(AppColors.BORDER, 1),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)));
             }
         });
         return pf;
@@ -182,12 +216,12 @@ public class UIFactory {
     }
 
     private static final Border DATE_FIELD_BORDER = BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(AppColors.BORDER, 1),
-        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+            BorderFactory.createLineBorder(AppColors.BORDER, 1),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
     );
     private static final Border DATE_FIELD_FOCUS_BORDER = BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
-        BorderFactory.createEmptyBorder(7, 11, 7, 11)
+            BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
+            BorderFactory.createEmptyBorder(7, 11, 7, 11)
     );
 
     /** Selector de fecha alineado con el resto de campos del formulario. */
@@ -221,7 +255,7 @@ public class UIFactory {
                 btn.setBorderPainted(false);
                 btn.setOpaque(true);
                 btn.setText("📅");
-                btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
+                btn.setFont(emojiFont(13));
                 btn.setPreferredSize(new Dimension(38, 38));
                 btn.setMinimumSize(new Dimension(38, 38));
             }
@@ -229,11 +263,58 @@ public class UIFactory {
         return dc;
     }
 
-    public static JLabel sectionTitle(String text) {
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        lbl.setForeground(AppColors.TEXT_PRIMARY);
-        return lbl;
+    public static JComponent sectionTitle(String text) {
+        String[] parts = splitIconAndText(text);
+        return sectionTitle(parts[0], parts[1]);
+    }
+
+    /** Título de sección con icono emoji y texto en fuentes compatibles con Windows. */
+    public static JComponent sectionTitle(String icon, String text) {
+        return iconTextRow(icon, text, FONT_SECTION, EMOJI_SIZE_SECTION, 6);
+    }
+
+    /** Separa el icono emoji/símbolo del texto (p. ej. "🏫  Recursos" → ["🏫", "Recursos"]). */
+    private static String[] splitIconAndText(String text) {
+        String t = text.strip();
+        int sep = t.indexOf("  ");
+        if (sep > 0) {
+            return new String[] { t.substring(0, sep).trim(), t.substring(sep).trim() };
+        }
+        sep = t.indexOf(' ');
+        if (sep > 0 && looksLikeIcon(t.substring(0, sep))) {
+            return new String[] { t.substring(0, sep), t.substring(sep + 1) };
+        }
+        return new String[] { null, t };
+    }
+
+    private static boolean looksLikeIcon(String s) {
+        if (s.isEmpty()) return false;
+        return s.codePoints().noneMatch(Character::isLetterOrDigit);
+    }
+
+    /** Configura botones con icono y texto usando fuentes adecuadas para cada parte. */
+    private static void configureButtonText(AbstractButton btn, String text, Font textFont) {
+        String[] parts = splitIconAndText(text);
+        int textSize = textFont.getSize();
+        if (parts[0] != null) {
+            btn.setText("<html><nobr><table cellpadding=0 cellspacing=0><tr>"
+                    + "<td style='font-family:Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,Dialog;font-size:" + EMOJI_SIZE_BUTTON + "px;"
+                    + "vertical-align:middle;white-space:nowrap'>" + escapeHtml(parts[0]) + "</td>"
+                    + "<td width='4'></td>"
+                    + "<td style='font-family:Segoe UI,Dialog;font-size:" + textSize + "px;"
+                    + "vertical-align:middle;white-space:nowrap'>" + escapeHtml(parts[1]) + "</td>"
+                    + "</tr></table></nobr></html>");
+        } else if (looksLikeIcon(text.strip())) {
+            btn.setFont(emojiFont(EMOJI_SIZE_BUTTON));
+            btn.setText(text);
+        } else {
+            btn.setFont(textFont);
+            btn.setText(text);
+        }
+    }
+
+    private static String escapeHtml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;");
     }
 
     public static JLabel formLabel(String text) {
@@ -285,7 +366,7 @@ public class UIFactory {
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v,
-                    boolean sel, boolean foc, int row, int col) {
+                                                           boolean sel, boolean foc, int row, int col) {
                 super.getTableCellRendererComponent(t, v, sel, foc, row, col);
                 if (sel) {
                     setBackground(AppColors.ROW_SELECTED);
@@ -303,17 +384,17 @@ public class UIFactory {
 
     public static void showSuccess(Component parent, String message) {
         JOptionPane.showMessageDialog(parent, message, "Correcto",
-            JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void showError(Component parent, String message) {
         JOptionPane.showMessageDialog(parent, message, "Error",
-            JOptionPane.ERROR_MESSAGE);
+                JOptionPane.ERROR_MESSAGE);
     }
 
     public static boolean showConfirm(Component parent, String message) {
         return JOptionPane.showConfirmDialog(parent, message, "Confirmar",
-            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
     }
 
     public static JPanel headerPanel() {

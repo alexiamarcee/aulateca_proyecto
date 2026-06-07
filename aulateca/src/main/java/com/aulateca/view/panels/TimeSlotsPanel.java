@@ -33,8 +33,8 @@ public class TimeSlotsPanel extends JPanel {
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
         JButton btnNuevo    = UIFactory.accentButton("+ Nueva franja");
-        JButton btnEditar   = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnEditar   = UIFactory.primaryButton("✎ Editar");
+        JButton btnEliminar = UIFactory.dangerButton("✕ Eliminar");
         btnNuevo.addActionListener(e -> abrirForm(null));
         btnEditar.addActionListener(e -> {
             int r = tabla.getSelectedRow();
@@ -78,10 +78,10 @@ public class TimeSlotsPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(ts -> modelo.addRow(new Object[]{
-            ts.getId(), ts.getNombre(),
-            ts.getHoraInicio().toString(),
-            ts.getHoraFin().toString(),
-            ts.getOrden()
+                ts.getId(), ts.getNombre(),
+                ts.getHoraInicio().toString(),
+                ts.getHoraFin().toString(),
+                ts.getOrden()
         }));
     }
 
@@ -145,8 +145,8 @@ public class TimeSlotsPanel extends JPanel {
             int orden = (int) spinOrden.getValue();
 
             var error = (slot == null)
-                ? controller.crear(txtNombre.getText(), ini, fin, orden)
-                : controller.actualizar(slot, txtNombre.getText(), ini, fin, orden);
+                    ? controller.crear(txtNombre.getText(), ini, fin, orden)
+                    : controller.actualizar(slot, txtNombre.getText(), ini, fin, orden);
 
             if (error.isPresent()) {
                 UIFactory.showError(dlg, error.get());
@@ -167,8 +167,8 @@ public class TimeSlotsPanel extends JPanel {
         if (UIFactory.showConfirm(this, "¿Eliminar la franja '" + ts.getNombre() + "'?\n" +
                 "Se eliminarán también las reservas asociadas.")) {
             controller.eliminar(ts.getId()).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                this::cargarDatos
+                    msg -> UIFactory.showError(this, msg),
+                    this::cargarDatos
             );
         }
     }

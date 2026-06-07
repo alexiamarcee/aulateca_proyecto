@@ -33,8 +33,9 @@ public class ResourcesPanel extends JPanel {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         toolbar.setOpaque(false);
         JButton btnNuevo  = UIFactory.accentButton("+ Nuevo recurso");
-        JButton btnEditar = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnEditar = UIFactory.primaryButton("✎ Editar");
+        JButton btnEliminar = UIFactory.dangerButton("✕ Eliminar");
+        btnEliminar.setPreferredSize(new Dimension(150, 38));
         JButton btnActualizar = UIFactory.secondaryButton("↻");
 
         btnNuevo.addActionListener(e -> abrirFormulario(null));
@@ -77,11 +78,11 @@ public class ResourcesPanel extends JPanel {
         listaActual = resultado.datos();
         for (Resource r : listaActual) {
             modelo.addRow(new Object[]{
-                r.getId(), r.getNombre(),
-                r.getTipo().getNombre(),
-                r.getEstado().getNombre(),
-                r.getUbicacion() != null ? r.getUbicacion() : "—",
-                r.getDescripcion() != null ? r.getDescripcion() : "—"
+                    r.getId(), r.getNombre(),
+                    r.getTipo().getNombre(),
+                    r.getEstado().getNombre(),
+                    r.getUbicacion() != null ? r.getUbicacion() : "—",
+                    r.getDescripcion() != null ? r.getDescripcion() : "—"
             });
         }
     }
@@ -100,7 +101,7 @@ public class ResourcesPanel extends JPanel {
         Frame frame = w instanceof Frame ? (Frame) w : null;
 
         JDialog dlg = new JDialog(frame,
-            recurso == null ? "Nuevo recurso" : "Editar recurso", true);
+                recurso == null ? "Nuevo recurso" : "Editar recurso", true);
         dlg.setSize(480, 520);
         dlg.setLocationRelativeTo(frame);
 
@@ -110,7 +111,7 @@ public class ResourcesPanel extends JPanel {
         dlg.setContentPane(root);
 
         root.add(UIFactory.sectionTitle(recurso == null ?
-            "Nuevo recurso" : "Editar: " + recurso.getNombre()), BorderLayout.NORTH);
+                "Nuevo recurso" : "Editar: " + recurso.getNombre()), BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(AppColors.BG_WHITE);
@@ -158,10 +159,10 @@ public class ResourcesPanel extends JPanel {
             String desc   = txtDescripcion.getText().trim();
             String ubi    = txtUbicacion.getText().trim();
             var error = (recurso == null)
-                ? controller.crear(nombre, desc,
+                    ? controller.crear(nombre, desc,
                     (ResourceType) cmbTipo.getSelectedItem(),
                     (ResourceStatus) cmbEstado.getSelectedItem(), ubi)
-                : controller.actualizar(recurso, nombre, desc,
+                    : controller.actualizar(recurso, nombre, desc,
                     (ResourceType) cmbTipo.getSelectedItem(),
                     (ResourceStatus) cmbEstado.getSelectedItem(), ubi);
 
@@ -190,10 +191,10 @@ public class ResourcesPanel extends JPanel {
         if (row < 0) { UIFactory.showError(this, "Selecciona un recurso."); return; }
         Resource r = listaActual.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar el recurso '" + r.getNombre() + "'?\n" +
-            "Se eliminarán también todas sus reservas.")) {
+                "Se eliminarán también todas sus reservas.")) {
             controller.eliminar(r.getId()).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                this::cargarDatos
+                    msg -> UIFactory.showError(this, msg),
+                    this::cargarDatos
             );
         }
     }

@@ -32,8 +32,8 @@ public class ResourceStatusPanel extends JPanel {
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
         JButton btnNuevo   = UIFactory.accentButton("+ Nuevo estado");
-        JButton btnEditar  = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnEditar  = UIFactory.primaryButton("✎ Editar");
+        JButton btnEliminar = UIFactory.dangerButton("✕ Eliminar");
         btnNuevo.addActionListener(e -> abrirForm(null));
         btnEditar.addActionListener(e -> { int r = tabla.getSelectedRow(); if (r >= 0) abrirForm(lista.get(r)); });
         btnEliminar.addActionListener(e -> eliminar());
@@ -61,9 +61,9 @@ public class ResourceStatusPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(s -> modelo.addRow(new Object[]{
-            s.getId(), s.getNombre(),
-            s.getDescripcion() != null ? s.getDescripcion() : "—",
-            s.isReservable() ? "Sí" : "No"
+                s.getId(), s.getNombre(),
+                s.getDescripcion() != null ? s.getDescripcion() : "—",
+                s.isReservable() ? "Sí" : "No"
         }));
     }
 
@@ -107,8 +107,8 @@ public class ResourceStatusPanel extends JPanel {
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
             var error = (estado == null)
-                ? controller.crear(txtNombre.getText(), txtDesc.getText(), chkRes.isSelected())
-                : controller.actualizar(estado, txtNombre.getText(), txtDesc.getText(), chkRes.isSelected());
+                    ? controller.crear(txtNombre.getText(), txtDesc.getText(), chkRes.isSelected())
+                    : controller.actualizar(estado, txtNombre.getText(), txtDesc.getText(), chkRes.isSelected());
             if (error.isPresent()) {
                 UIFactory.showError(dlg, error.get());
                 return;
@@ -127,8 +127,8 @@ public class ResourceStatusPanel extends JPanel {
         ResourceStatus s = lista.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar estado '" + s.getNombre() + "'?")) {
             controller.eliminar(s.getId()).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                this::cargarDatos
+                    msg -> UIFactory.showError(this, msg),
+                    this::cargarDatos
             );
         }
     }

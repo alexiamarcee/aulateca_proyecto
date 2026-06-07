@@ -13,11 +13,13 @@ import java.util.List;
 public class UsersPanel extends JPanel {
 
     private final UserController controller = new UserController();
+    private final User usuarioActual;
     private JTable tabla;
     private DefaultTableModel modelo;
     private List<User> lista;
 
-    public UsersPanel() {
+    public UsersPanel(User usuarioActual) {
+        this.usuarioActual = usuarioActual;
         setBackground(AppColors.BG_LIGHT);
         setLayout(new BorderLayout(0, 16));
         initUI();
@@ -32,7 +34,7 @@ public class UsersPanel extends JPanel {
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
         JButton btnNuevo    = UIFactory.accentButton("+ Nuevo usuario");
-        JButton btnEditar   = UIFactory.primaryButton("✏ Editar");
+        JButton btnEditar   = UIFactory.primaryButton("✎ Editar");
         JButton btnDesactivar = UIFactory.dangerButton("⊘ Desactivar");
         JButton btnRefrescar  = UIFactory.secondaryButton("↻");
 
@@ -82,8 +84,8 @@ public class UsersPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(u -> modelo.addRow(new Object[]{
-            u.getId(), u.getNombreCompleto(), u.getEmail(),
-            u.getRol().name(), u.isActivo() ? "Sí" : "No"
+                u.getId(), u.getNombreCompleto(), u.getEmail(),
+                u.getRol().name(), u.isActivo() ? "Sí" : "No"
         }));
     }
 
@@ -153,9 +155,9 @@ public class UsersPanel extends JPanel {
         btnOk.addActionListener(e -> {
             String password = new String(txtPassword.getPassword()).trim();
             var error = esNuevo
-                ? controller.crear(txtNombre.getText(), txtApellidos.getText(),
+                    ? controller.crear(txtNombre.getText(), txtApellidos.getText(),
                     txtEmail.getText(), password, (User.Rol) cmbRol.getSelectedItem())
-                : controller.actualizar(usuario, txtNombre.getText(), txtApellidos.getText(),
+                    : controller.actualizar(usuario, txtNombre.getText(), txtApellidos.getText(),
                     txtEmail.getText(), password, (User.Rol) cmbRol.getSelectedItem(),
                     chkActivo.isSelected());
 
@@ -177,11 +179,15 @@ public class UsersPanel extends JPanel {
         int row = tabla.getSelectedRow();
         if (row < 0) { UIFactory.showError(this, "Selecciona un usuario."); return; }
         User u = lista.get(row);
+        if (u.getId().equals(usuarioActual.getId())) {
+            UIFactory.showError(this, "No puedes desactivar tu propia cuenta.");
+            return;
+        }
         String accion = u.isActivo() ? "desactivar" : "activar";
         if (UIFactory.showConfirm(this, "¿Deseas " + accion + " al usuario '" + u.getNombreCompleto() + "'?")) {
             controller.cambiarEstadoActivo(u).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                this::cargarDatos
+                    msg -> UIFactory.showError(this, msg),
+                    this::cargarDatos
             );
         }
     }

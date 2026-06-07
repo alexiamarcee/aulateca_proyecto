@@ -32,8 +32,8 @@ public class ReservationFormDialog extends JDialog {
     private boolean             saved = false;
 
     public ReservationFormDialog(Frame parent, Reservation reserva, User usuarioActual,
-                                  List<Resource> recursos, List<User> usuarios,
-                                  List<TimeSlot> franjas, ReservationController controller) {
+                                 List<Resource> recursos, List<User> usuarios,
+                                 List<TimeSlot> franjas, ReservationController controller) {
         super(parent, reserva == null ? "Nueva reserva" : "Editar reserva", true);
         this.reserva       = reserva;
         this.usuarioActual = usuarioActual;
@@ -65,8 +65,8 @@ public class ReservationFormDialog extends JDialog {
         titleLbl.setForeground(Color.WHITE);
         topStrip.add(titleLbl, BorderLayout.CENTER);
 
-        JButton btnX = new JButton("✕");
-        btnX.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        JButton btnX = new JButton("\u00D7");   // × carácter multiplicación, presente en todas las fuentes
+        btnX.setFont(new Font("Segoe UI", Font.BOLD, 18));
         btnX.setForeground(Color.WHITE);
         btnX.setBackground(AppColors.PRIMARY);
         btnX.setBorderPainted(false);
@@ -132,7 +132,7 @@ public class ReservationFormDialog extends JDialog {
 
         JButton btnCancel  = UIFactory.textButton("Cancelar");
         JButton btnGuardar = UIFactory.primaryButton(
-            reserva == null ? "Guardar" : "Actualizar");
+                reserva == null ? "Guardar" : "Actualizar");
 
         btnCancel.addActionListener(e -> dispose());
         btnGuardar.addActionListener(e -> guardar());
@@ -154,7 +154,7 @@ public class ReservationFormDialog extends JDialog {
         cmbUsuario.setSelectedItem(reserva.getUsuario());
         cmbRecurso.setSelectedItem(reserva.getRecurso());
         dateChooser.setDate(Date.from(
-            reserva.getFecha().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                reserva.getFecha().atStartOfDay(ZoneId.systemDefault()).toInstant()));
         cmbFranja.setSelectedItem(reserva.getFranjaHoraria());
         txtMotivo.setText(reserva.getMotivo() != null ? reserva.getMotivo() : "");
     }
@@ -168,15 +168,15 @@ public class ReservationFormDialog extends JDialog {
     private void comprobarDisponibilidad() {
         Long excludeId = (reserva != null) ? reserva.getId() : null;
         DisponibilidadCheckResult resultado = controller.verificarDisponibilidad(
-            (Resource) cmbRecurso.getSelectedItem(),
-            getFecha(),
-            (TimeSlot) cmbFranja.getSelectedItem(),
-            excludeId);
+                (Resource) cmbRecurso.getSelectedItem(),
+                getFecha(),
+                (TimeSlot) cmbFranja.getSelectedItem(),
+                excludeId);
 
         String prefijo = switch (resultado.tipo()) {
-            case OK    -> "✓  ";
+            case OK    -> "\u2714  ";   // ✔ checkmark, soportado en Segoe UI
             case AVISO -> "";
-            case ERROR -> "✕  ";
+            case ERROR -> "\u00D7  ";  // × disponible en todas las fuentes
         };
         lblDisponibilidad.setText(prefijo + resultado.mensaje());
         lblDisponibilidad.setForeground(switch (resultado.tipo()) {
@@ -189,8 +189,8 @@ public class ReservationFormDialog extends JDialog {
     /** Delega el guardado al controlador. */
     private void guardar() {
         User usuario = usuarioActual.puedeGestionarReservasAjena()
-            ? (User) cmbUsuario.getSelectedItem()
-            : usuarioActual;
+                ? (User) cmbUsuario.getSelectedItem()
+                : usuarioActual;
         Resource  recurso = (Resource) cmbRecurso.getSelectedItem();
         TimeSlot  franja  = (TimeSlot) cmbFranja.getSelectedItem();
         LocalDate fecha   = getFecha();
@@ -198,15 +198,15 @@ public class ReservationFormDialog extends JDialog {
         String motivoFinal = motivo.isEmpty() ? null : motivo;
 
         var error = (reserva == null)
-            ? controller.crearReserva(usuarioActual, usuario, recurso, fecha, franja, motivoFinal)
-            : controller.modificarReserva(usuarioActual, reserva.getId(), usuario, recurso, fecha, franja, motivoFinal);
+                ? controller.crearReserva(usuarioActual, usuario, recurso, fecha, franja, motivoFinal)
+                : controller.modificarReserva(usuarioActual, reserva.getId(), usuario, recurso, fecha, franja, motivoFinal);
 
         if (error.isPresent()) {
             UIFactory.showError(this, error.get());
             return;
         }
         UIFactory.showSuccess(this, reserva == null ?
-            "Reserva creada correctamente." : "Reserva actualizada correctamente.");
+                "Reserva creada correctamente." : "Reserva actualizada correctamente.");
         saved = true;
         dispose();
     }

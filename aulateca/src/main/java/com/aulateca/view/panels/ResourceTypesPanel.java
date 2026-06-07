@@ -32,8 +32,8 @@ public class ResourceTypesPanel extends JPanel {
         JPanel tb = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         tb.setOpaque(false);
         JButton btnNuevo   = UIFactory.accentButton("+ Nuevo tipo");
-        JButton btnEditar  = UIFactory.primaryButton("✏ Editar");
-        JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        JButton btnEditar  = UIFactory.primaryButton("✎ Editar");
+        JButton btnEliminar = UIFactory.dangerButton("✕ Eliminar");
         btnNuevo.addActionListener(e -> abrirForm(null));
         btnEditar.addActionListener(e -> { int r = tabla.getSelectedRow(); if (r >= 0) abrirForm(lista.get(r)); });
         btnEliminar.addActionListener(e -> eliminar());
@@ -61,8 +61,8 @@ public class ResourceTypesPanel extends JPanel {
         }
         lista = resultado.datos();
         lista.forEach(t -> modelo.addRow(new Object[]{
-            t.getId(), t.getNombre(),
-            t.getDescripcion() != null ? t.getDescripcion() : "—"
+                t.getId(), t.getNombre(),
+                t.getDescripcion() != null ? t.getDescripcion() : "—"
         }));
     }
 
@@ -98,8 +98,8 @@ public class ResourceTypesPanel extends JPanel {
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
             var error = (tipo == null)
-                ? controller.crear(txtNombre.getText(), txtDesc.getText())
-                : controller.actualizar(tipo, txtNombre.getText(), txtDesc.getText());
+                    ? controller.crear(txtNombre.getText(), txtDesc.getText())
+                    : controller.actualizar(tipo, txtNombre.getText(), txtDesc.getText());
             if (error.isPresent()) {
                 UIFactory.showError(dlg, error.get());
                 return;
@@ -118,8 +118,8 @@ public class ResourceTypesPanel extends JPanel {
         ResourceType t = lista.get(row);
         if (UIFactory.showConfirm(this, "¿Eliminar tipo '" + t.getNombre() + "'?")) {
             controller.eliminar(t.getId()).ifPresentOrElse(
-                msg -> UIFactory.showError(this, msg),
-                this::cargarDatos
+                    msg -> UIFactory.showError(this, msg),
+                    this::cargarDatos
             );
         }
     }

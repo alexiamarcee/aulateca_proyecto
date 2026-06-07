@@ -50,16 +50,16 @@ public class MainFrame extends JFrame {
         bar.setBackground(AppColors.BG_WHITE);
         bar.setPreferredSize(new Dimension(0, 64));
         bar.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, AppColors.BORDER),
-            BorderFactory.createEmptyBorder(0, 20, 0, 20)
+                BorderFactory.createMatteBorder(0, 0, 1, 0, AppColors.BORDER),
+                BorderFactory.createEmptyBorder(0, 20, 0, 20)
         ));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
         JLabel logo = new JLabel("<html>" +
-            "<span style='font-family:Segoe UI;font-size:20px;color:#1A73E8'><b>Aula</b></span>" +
-            "<span style='font-family:Segoe UI;font-size:20px;color:#0F9D58'><b>teca</b></span>" +
-            "</html>");
+                "<span style='font-family:Segoe UI;font-size:20px;color:#1A73E8'><b>Aula</b></span>" +
+                "<span style='font-family:Segoe UI;font-size:20px;color:#0F9D58'><b>teca</b></span>" +
+                "</html>");
         left.add(logo);
         bar.add(left, BorderLayout.WEST);
 
@@ -67,7 +67,7 @@ public class MainFrame extends JFrame {
         right.setOpaque(false);
 
         String iniciales = String.valueOf(usuarioActual.getNombre().charAt(0)).toUpperCase()
-            + String.valueOf(usuarioActual.getApellidos().charAt(0)).toUpperCase();
+                + String.valueOf(usuarioActual.getApellidos().charAt(0)).toUpperCase();
         JLabel avatar = new JLabel(iniciales) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -89,9 +89,9 @@ public class MainFrame extends JFrame {
         nombreLbl.setForeground(AppColors.TEXT_PRIMARY);
 
         JLabel rolChip = UIFactory.chip(
-            usuarioActual.getRol().name(),
-            AppColors.PRIMARY_LIGHT,
-            AppColors.PRIMARY
+                usuarioActual.getRol().name(),
+                AppColors.PRIMARY_LIGHT,
+                AppColors.PRIMARY
         );
 
         JButton btnSalir = UIFactory.textButton("Cerrar sesión");
@@ -115,8 +115,8 @@ public class MainFrame extends JFrame {
         sidebar.setBackground(AppColors.BG_APP);
         sidebar.setPreferredSize(new Dimension(230, 0));
         sidebar.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 0, 1, AppColors.BORDER),
-            BorderFactory.createEmptyBorder(16, 8, 16, 8)
+                BorderFactory.createMatteBorder(0, 0, 0, 1, AppColors.BORDER),
+                BorderFactory.createEmptyBorder(16, 8, 16, 8)
         ));
 
         JButton btnNueva = new JButton("+ Nueva reserva") {
@@ -136,8 +136,8 @@ public class MainFrame extends JFrame {
         btnNueva.setContentAreaFilled(false);
         btnNueva.setFocusPainted(false);
         btnNueva.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppColors.BORDER, 1),
-            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+                BorderFactory.createLineBorder(AppColors.BORDER, 1),
+                BorderFactory.createEmptyBorder(12, 20, 12, 20)
         ));
         btnNueva.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnNueva.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -163,13 +163,13 @@ public class MainFrame extends JFrame {
             addNavItem(sidebar, "🔴", "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
             addNavItem(sidebar, "⏰", "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
         }
-        
+
         if (usuarioActual.getRol() == User.Rol.ADMIN) {
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarSeparator(sidebar);
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarLabel(sidebar, "ADMINISTRACIÓN");
-            addNavItem(sidebar, "👥", "Usuarios",       () -> mostrarPanel(new UsersPanel()));
+            addNavItem(sidebar, "👥", "Usuarios",       () -> mostrarPanel(new UsersPanel(usuarioActual)));
         }
 
         sidebar.add(Box.createVerticalGlue());
@@ -194,7 +194,7 @@ public class MainFrame extends JFrame {
     }
 
     private void addNavItem(JPanel sidebar, String icon, String label, Runnable action) {
-        JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0)) {
+        JPanel item = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 if (getBackground() != AppColors.BG_APP) {
                     Graphics2D g2 = (Graphics2D) g.create();
@@ -206,21 +206,27 @@ public class MainFrame extends JFrame {
                 super.paintComponent(g);
             }
         };
+        item.setLayout(new BoxLayout(item, BoxLayout.X_AXIS));
         item.setOpaque(false);
         item.setMaximumSize(new Dimension(214, 40));
         item.setAlignmentX(Component.LEFT_ALIGNMENT);
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        item.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+        item.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 8));
 
         JLabel iconLbl = new JLabel(icon);
-        iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 15));
+        iconLbl.setFont(UIFactory.emojiFont(14));
+        iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         JLabel textLbl = new JLabel(label);
         textLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textLbl.setForeground(AppColors.TEXT_PRIMARY);
+        textLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
 
+        item.add(Box.createHorizontalStrut(4));
         item.add(iconLbl);
+        item.add(Box.createHorizontalStrut(8));
         item.add(textLbl);
+        item.add(Box.createHorizontalGlue());
 
         item.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
