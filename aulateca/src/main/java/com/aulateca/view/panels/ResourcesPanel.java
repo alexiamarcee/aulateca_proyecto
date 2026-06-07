@@ -86,76 +86,80 @@ public class ResourcesPanel extends JPanel {
     }
 
     private void abrirFormulario(Resource recurso) {
-        var tiposResult   = controller.listarTipos();
+        var tiposResult = controller.listarTipos();
         var estadosResult = controller.listarEstados();
         if (tiposResult.esError() || estadosResult.esError()) {
             UIFactory.showError(this, "No se pudieron cargar tipos y estados.");
             return;
         }
-
+    
         List<ResourceType> tipos = tiposResult.datos();
         List<ResourceStatus> estados = estadosResult.datos();
         if (tipos.isEmpty()) {
             UIFactory.showError(this, "No hay tipos de recurso configurados.");
             return;
         }
-
+    
         boolean esNuevo = recurso == null;
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame frame = w instanceof Frame ? (Frame) w : null;
-
-        JDialog dlg = new JDialog(frame,
-            esNuevo ? "Nuevo recurso" : "Editar recurso", true);
+    
+        JDialog dlg = new JDialog(frame, esNuevo ? "Nuevo recurso" : "Editar recurso", true);
         dlg.setResizable(true);
-
+    
         JPanel root = new JPanel(new BorderLayout(0, 16));
         root.setBackground(AppColors.BG_WHITE);
         root.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
         dlg.setContentPane(root);
-
-        root.add(UIFactory.sectionTitle(esNuevo ?
-            "Nuevo recurso" : "Editar recurso"), BorderLayout.NORTH);
-
+    
+        root.add(UIFactory.sectionTitle(esNuevo ? "Nuevo recurso" : "Editar recurso"), BorderLayout.NORTH);
+    
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(AppColors.BG_WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(4, 0, 10, 0);
-
-        JComboBox<ResourceType>   cmbTipo        = comboFormulario();
-        JTextField                txtNombre      = UIFactory.textField(32);
-        JComboBox<ResourceStatus> cmbEstado      = comboFormulario();
-        JTextArea                 txtComentarios = new JTextArea(5, 32);
-        JScrollPane               panelComentarios = UIFactory.textArea(txtComentarios);
-        panelComentarios.setPreferredSize(new Dimension(0, 120));
-
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 0, 5, 0);
+    
+        JComboBox<ResourceType> cmbTipo = comboFormulario();
+        JTextField txtNombre = UIFactory.textField(32);
+        JComboBox<ResourceStatus> cmbEstado = comboFormulario();
+    
+        JTextArea txtComentarios = new JTextArea();
+        txtComentarios.setLineWrap(true);
+        txtComentarios.setWrapStyleWord(true);
+        
+        JScrollPane panelComentarios = new JScrollPane(txtComentarios);
+        panelComentarios.setPreferredSize(new Dimension(0, 250));
+        panelComentarios.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        panelComentarios.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
+    
         tipos.forEach(cmbTipo::addItem);
         estados.forEach(cmbEstado::addItem);
-
+    
         int row = 0;
         if (esNuevo) {
-            agregarFila(form, gbc, row++, "Tipo *", cmbTipo);
-            agregarFila(form, gbc, row++, "Nombre *", txtNombre);
+            agregarFilaConPeso(form, gbc, row++, "Tipo *", cmbTipo, 0);
+            agregarFilaConPeso(form, gbc, row++, "Nombre *", txtNombre, 0);
         } else {
-            agregarFila(form, gbc, row++, "Tipo", campoSoloLectura(recurso.getTipo().getNombre()));
-            agregarFila(form, gbc, row++, "Nombre", campoSoloLectura(recurso.getNombre()));
+            agregarFilaConPeso(form, gbc, row++, "Tipo", campoSoloLectura(recurso.getTipo().getNombre()), 0);
+            agregarFilaConPeso(form, gbc, row++, "Nombre", campoSoloLectura(recurso.getNombre()), 0);
             cmbEstado.setSelectedItem(recurso.getEstado());
             txtComentarios.setText(recurso.getDescripcion() != null ? recurso.getDescripcion() : "");
         }
-
-        agregarFila(form, gbc, row++, "Estado *", cmbEstado);
-        agregarFila(form, gbc, row, "Comentarios", panelComentarios);
-
+    
+        agregarFilaConPeso(form, gbc, row++, "Estado *", cmbEstado, 0);
+        agregarFilaConPeso(form, gbc, row, "Comentarios", panelComentarios, 1.0);
+    
         root.add(form, BorderLayout.CENTER);
-
+    
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         btns.setOpaque(false);
         btns.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
         JButton btnCancel = UIFactory.secondaryButton("Cancelar");
-        JButton btnOk     = UIFactory.primaryButton("Guardar");
+        JButton btnOk = UIFactory.primaryButton("Guardar");
         btnCancel.addActionListener(e -> dlg.dispose());
         btnOk.addActionListener(e -> {
             String comentarios = txtComentarios.getText().trim();
@@ -164,7 +168,7 @@ public class ResourcesPanel extends JPanel {
                 UIFactory.showError(dlg, "Selecciona un estado.");
                 return;
             }
-
+    
             Optional<String> error;
             if (esNuevo) {
                 ResourceType tipo = (ResourceType) cmbTipo.getSelectedItem();
@@ -178,7 +182,7 @@ public class ResourcesPanel extends JPanel {
                 error = controller.actualizar(recurso, recurso.getNombre(), comentarios,
                     recurso.getTipo(), estado, recurso.getUbicacion());
             }
-
+    
             if (error.isPresent()) {
                 UIFactory.showError(dlg, error.get());
                 return;
@@ -190,23 +194,21 @@ public class ResourcesPanel extends JPanel {
         btns.add(btnCancel);
         btns.add(btnOk);
         root.add(btns, BorderLayout.SOUTH);
-
+    
         dlg.pack();
-        Dimension tamMin = new Dimension(560, esNuevo ? 500 : 460);
-        if (dlg.getWidth() < tamMin.width || dlg.getHeight() < tamMin.height) {
-            dlg.setSize(tamMin);
-        }
+        Dimension tamMin = new Dimension(600, 600);
+        dlg.setSize(tamMin);
         dlg.setMinimumSize(tamMin);
         dlg.setLocationRelativeTo(frame);
         dlg.setVisible(true);
     }
-
-    private void agregarFila(JPanel form, GridBagConstraints gbc, int row,
-                             String etiqueta, Component campo) {
+    
+    private void agregarFilaConPeso(JPanel form, GridBagConstraints gbc, int row, String etiqueta, Component campo, double weighty) {
         gbc.gridy = row * 2;
         gbc.weighty = 0;
         form.add(UIFactory.formLabel(etiqueta), gbc);
         gbc.gridy = row * 2 + 1;
+        gbc.weighty = weighty;
         form.add(campo, gbc);
     }
 

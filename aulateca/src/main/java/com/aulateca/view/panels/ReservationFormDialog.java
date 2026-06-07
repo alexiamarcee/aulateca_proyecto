@@ -64,17 +64,7 @@ public class ReservationFormDialog extends JDialog {
         titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         titleLbl.setForeground(Color.WHITE);
         topStrip.add(titleLbl, BorderLayout.CENTER);
-
-        JButton btnX = new JButton("✕");
-        btnX.setFont(UIFactory.emojiFont(14));
-        btnX.setForeground(Color.WHITE);
-        btnX.setBackground(AppColors.PRIMARY);
-        btnX.setBorderPainted(false);
-        btnX.setFocusPainted(false);
-        btnX.setOpaque(true);
-        btnX.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnX.addActionListener(e -> dispose());
-        topStrip.add(btnX, BorderLayout.EAST);
+        
         root.add(topStrip, BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridBagLayout());

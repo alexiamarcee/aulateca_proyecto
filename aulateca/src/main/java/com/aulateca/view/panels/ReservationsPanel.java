@@ -43,7 +43,7 @@ public class ReservationsPanel extends JPanel {
         toolbar.setOpaque(false);
 
         cmbFiltro = new JComboBox<>(new String[]{
-            "Todas", "Esta semana", "Hoy", "Este mes"});
+            "Todas", "Hoy", "Esta semana", "Este mes"});
         cmbFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbFiltro.setPreferredSize(new Dimension(150, 36));
         cmbFiltro.addActionListener(e -> cargarReservas());
@@ -142,7 +142,6 @@ public class ReservationsPanel extends JPanel {
         add(card, BorderLayout.CENTER);
     }
 
-    /** Solicita las reservas al controlador y actualiza la tabla. */
     private void cargarReservas() {
         modelo.setRowCount(0);
         var resultado = controller.listarReservas(usuarioActual, cmbFiltro.getSelectedIndex());
@@ -171,7 +170,6 @@ public class ReservationsPanel extends JPanel {
         abrirFormulario(this, usuarioActual, reserva, this::cargarReservas);
     }
 
-    /** Abre el formulario de reserva desde cualquier pantalla. */
     public static void abrirFormulario(Component parent, User usuarioActual,
                                        Reservation reserva, Runnable alGuardar) {
         ReservationController ctrl = new ReservationController();

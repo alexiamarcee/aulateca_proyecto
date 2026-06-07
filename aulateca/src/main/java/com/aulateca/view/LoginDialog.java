@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-/** Diálogo de inicio de sesión (solo login, con logo y valores predefinidos). */
+/** Diálogo de inicio de sesión */
 public class LoginDialog extends JDialog {
 
     private static final Dimension TAM_LOGIN = new Dimension(440, 500);
@@ -32,7 +32,6 @@ public class LoginDialog extends JDialog {
         root.setBackground(AppColors.BG_APP);
         setContentPane(root);
 
-        // Panel contenedor (Card)
         JPanel card = new JPanel(new BorderLayout(0, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -46,7 +45,6 @@ public class LoginDialog extends JDialog {
         card.setPreferredSize(new Dimension(380, 440));
         card.setBorder(BorderFactory.createEmptyBorder(40, 40, 32, 40));
 
-        // Panel superior con logo y subtítulo
         JPanel logoPanel = new JPanel();
         logoPanel.setOpaque(false);
         logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
@@ -81,14 +79,12 @@ public class LoginDialog extends JDialog {
         txtEmail = UIFactory.textField(20);
         txtPassword = UIFactory.passwordField(20);
         
-        // Valores predefinidos como pediste
         txtEmail.setText("admin@aulateca.es");
         txtPassword.setText("admin123");
 
         JLabel lblEmail = UIFactory.formLabel("Correo electrónico");
         JLabel lblPass = UIFactory.formLabel("Contraseña");
 
-        // Configuración de etiquetas alineadas a la izquierda y con ancho máximo
         lblEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, lblEmail.getPreferredSize().height));
@@ -115,7 +111,6 @@ public class LoginDialog extends JDialog {
 
     private <T extends JComponent> T campoAncho(T campo) {
         campo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        // Usar Integer.MAX_VALUE asegura que ocupe todo el ancho del contenedor
         campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         return campo;
     }
