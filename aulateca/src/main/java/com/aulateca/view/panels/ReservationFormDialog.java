@@ -66,7 +66,7 @@ public class ReservationFormDialog extends JDialog {
         topStrip.add(titleLbl, BorderLayout.CENTER);
 
         JButton btnX = new JButton("✕");
-        btnX.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        btnX.setFont(UIFactory.emojiFont(14));
         btnX.setForeground(Color.WHITE);
         btnX.setBackground(AppColors.PRIMARY);
         btnX.setBorderPainted(false);

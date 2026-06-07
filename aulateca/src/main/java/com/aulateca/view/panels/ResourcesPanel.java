@@ -35,6 +35,7 @@ public class ResourcesPanel extends JPanel {
         JButton btnNuevo  = UIFactory.accentButton("+ Nuevo recurso");
         JButton btnEditar = UIFactory.primaryButton("✏ Editar");
         JButton btnEliminar = UIFactory.dangerButton("🗑 Eliminar");
+        btnEliminar.setPreferredSize(new Dimension(150, 38));
         JButton btnActualizar = UIFactory.secondaryButton("↻");
 
         btnNuevo.addActionListener(e -> abrirFormulario(null));

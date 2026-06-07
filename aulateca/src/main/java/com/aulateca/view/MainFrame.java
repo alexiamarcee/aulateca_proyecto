@@ -194,7 +194,7 @@ public class MainFrame extends JFrame {
     }
 
     private void addNavItem(JPanel sidebar, String icon, String label, Runnable action) {
-        JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0)) {
+        JPanel item = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 if (getBackground() != AppColors.BG_APP) {
                     Graphics2D g2 = (Graphics2D) g.create();
@@ -206,21 +206,27 @@ public class MainFrame extends JFrame {
                 super.paintComponent(g);
             }
         };
+        item.setLayout(new BoxLayout(item, BoxLayout.X_AXIS));
         item.setOpaque(false);
         item.setMaximumSize(new Dimension(214, 40));
         item.setAlignmentX(Component.LEFT_ALIGNMENT);
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        item.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+        item.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 8));
 
         JLabel iconLbl = new JLabel(icon);
-        iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 15));
+        iconLbl.setFont(UIFactory.emojiFont(14));
+        iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         JLabel textLbl = new JLabel(label);
         textLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textLbl.setForeground(AppColors.TEXT_PRIMARY);
+        textLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
 
+        item.add(Box.createHorizontalStrut(4));
         item.add(iconLbl);
+        item.add(Box.createHorizontalStrut(8));
         item.add(textLbl);
+        item.add(Box.createHorizontalGlue());
 
         item.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {

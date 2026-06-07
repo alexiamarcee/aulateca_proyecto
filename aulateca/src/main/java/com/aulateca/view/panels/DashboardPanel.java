@@ -90,7 +90,8 @@ public class DashboardPanel extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JLabel iconLbl = new JLabel(icon);
-        iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        iconLbl.setAlignmentY(Component.CENTER_ALIGNMENT);
+        iconLbl.setFont(UIFactory.emojiFont(20));
 
         JLabel valueLbl = new JLabel(value);
         valueLbl.setFont(new Font("Segoe UI", Font.BOLD, 36));
