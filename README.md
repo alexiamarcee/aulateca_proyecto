@@ -223,6 +223,16 @@ mvn exec:java -Dexec.mainClass="com.aulateca.Main"
 
 El modelo define seis entidades principales: `users`, `resources`, `resource_types`, `resource_status`, `time_slots` y `reservations`. La tabla `reservations` incorpora una restricción de unicidad compuesta sobre `(recurso_id, fecha, franja_horaria_id)` que impide a nivel de base de datos que un mismo recurso pueda reservarse dos veces en la misma fecha y franja horaria.
 
+### Diagrama UML de clases
+
+![Diagrama UML de clases](aulateca/Diagramas/Diagrama_UML.png)
+
+El diagrama está organizado en tres grandes bloques:
+
+- **Capa de Presentación (Java Swing UI & Threads):** incluye `AppMain` como punto de entrada, las vistas `VentanaLogin` y `VentanaPrincipal` (ambas `JFrame`), el controlador `GestorReservasController` que las coordina, y un `SwingWorker` (`DBWorker`) que ejecuta las consultas a base de datos en un hilo secundario para no bloquear la interfaz.
+- **Capa de Mapeo ORM (Hibernate Entities & DAOs):** contiene `GenericDAO<T>` como clase base genérica, las entidades JPA `Reserva`, `Usuario` y `Recurso`, los DAOs específicos `ReservaDAO` y `UsuarioDAO`, y `HibernateUtil` (Singleton con `SessionFactory`) junto con `AuditInterceptor` para el ciclo de vida de las entidades.
+- **Base de Datos Relacional (Esquema Físico SQL):** muestra las tablas `estado_recurso`, `tipo_recurso`, `usuarios`, `recursos` y `reservas` con sus columnas, tipos, restricciones `NOT NULL`, valores por defecto, índices y claves foráneas.
+
 ---
 
 ## Arquitectura y patrones
