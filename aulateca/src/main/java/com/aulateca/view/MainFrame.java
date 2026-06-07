@@ -150,18 +150,20 @@ public class MainFrame extends JFrame {
         addNavItem(sidebar, "🏠", "Inicio",            () -> mostrarPanel(new DashboardPanel(usuarioActual)));
         addNavItem(sidebar, "📅", "Reservas",           () -> mostrarPanel(new ReservationsPanel(usuarioActual)));
         addNavItem(sidebar, "🔍", "Disponibilidad",     () -> mostrarPanel(new AvailabilityPanel()));
-
-        sidebar.add(Box.createVerticalStrut(8));
-        addSidebarSeparator(sidebar);
-        sidebar.add(Box.createVerticalStrut(8));
-
-        addSidebarLabel(sidebar, "CONFIGURACIÓN");
-        addNavItem(sidebar, "🏫", "Recursos",           () -> mostrarPanel(new ResourcesPanel()));
-        addNavItem(sidebar, "📁", "Tipos de recurso",   () -> mostrarPanel(new ResourceTypesPanel()));
-        addNavItem(sidebar, "🔴", "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
-        addNavItem(sidebar, "⏰", "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
-
+        
         if (usuarioActual.getRol() == User.Rol.ADMIN) {
+
+            sidebar.add(Box.createVerticalStrut(8));
+            addSidebarSeparator(sidebar);
+            sidebar.add(Box.createVerticalStrut(8));
+
+            addSidebarLabel(sidebar, "CONFIGURACIÓN");
+            addNavItem(sidebar, "🏫", "Recursos",           () -> mostrarPanel(new ResourcesPanel()));
+            addNavItem(sidebar, "📁", "Tipos de recurso",   () -> mostrarPanel(new ResourceTypesPanel()));
+            addNavItem(sidebar, "🔴", "Estados",            () -> mostrarPanel(new ResourceStatusPanel()));
+            addNavItem(sidebar, "⏰", "Franjas horarias",   () -> mostrarPanel(new TimeSlotsPanel()));
+
+        
             sidebar.add(Box.createVerticalStrut(8));
             addSidebarSeparator(sidebar);
             sidebar.add(Box.createVerticalStrut(8));
