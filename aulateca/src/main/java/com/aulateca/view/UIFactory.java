@@ -1,5 +1,7 @@
 package com.aulateca.view;
 
+import com.toedter.calendar.JDateChooser;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -177,6 +179,54 @@ public class UIFactory {
         cb.setForeground(AppColors.TEXT_PRIMARY);
         cb.setBorder(BorderFactory.createLineBorder(AppColors.BORDER));
         return cb;
+    }
+
+    private static final Border DATE_FIELD_BORDER = BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(AppColors.BORDER, 1),
+        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+    );
+    private static final Border DATE_FIELD_FOCUS_BORDER = BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(AppColors.PRIMARY, 2),
+        BorderFactory.createEmptyBorder(7, 11, 7, 11)
+    );
+
+    /** Selector de fecha alineado con el resto de campos del formulario. */
+    public static JDateChooser dateChooser() {
+        JDateChooser dc = new JDateChooser();
+        dc.setDateFormatString("dd/MM/yyyy");
+        dc.setFont(FONT_BODY);
+        dc.setBackground(AppColors.BG_WHITE);
+        dc.setOpaque(true);
+        dc.setPreferredSize(new Dimension(0, 38));
+
+        JComponent editor = (JComponent) dc.getDateEditor().getUiComponent();
+        editor.setFont(FONT_BODY);
+        editor.setForeground(AppColors.TEXT_PRIMARY);
+        editor.setBackground(AppColors.BG_WHITE);
+        editor.setBorder(DATE_FIELD_BORDER);
+        editor.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent e) {
+                editor.setBorder(DATE_FIELD_FOCUS_BORDER);
+            }
+            public void focusLost(java.awt.event.FocusEvent e) {
+                editor.setBorder(DATE_FIELD_BORDER);
+            }
+        });
+
+        for (Component c : dc.getComponents()) {
+            if (c instanceof JButton btn) {
+                btn.setBackground(AppColors.PRIMARY);
+                btn.setForeground(Color.WHITE);
+                btn.setFocusPainted(false);
+                btn.setBorderPainted(false);
+                btn.setOpaque(true);
+                btn.setText("📅");
+                btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
+                btn.setPreferredSize(new Dimension(38, 38));
+                btn.setMinimumSize(new Dimension(38, 38));
+            }
+        }
+        return dc;
     }
 
     public static JLabel sectionTitle(String text) {

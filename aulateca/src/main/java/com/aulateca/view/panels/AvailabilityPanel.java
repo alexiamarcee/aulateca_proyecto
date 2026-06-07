@@ -56,12 +56,9 @@ public class AvailabilityPanel extends JPanel {
         filterCard.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
 
         filterCard.add(UIFactory.formLabel("Fecha"));
-        dateChooser = new JDateChooser();
+        dateChooser = UIFactory.dateChooser();
         dateChooser.setDate(new Date());
-        dateChooser.setDateFormatString("dd/MM/yyyy");
-        dateChooser.setFont(UIFactory.FONT_BODY);
-        dateChooser.setPreferredSize(new Dimension(150, 36));
-        estilizarCalendario(dateChooser);
+        dateChooser.setPreferredSize(new Dimension(150, 38));
         filterCard.add(dateChooser);
 
         filterCard.add(Box.createHorizontalStrut(8));
@@ -94,20 +91,6 @@ public class AvailabilityPanel extends JPanel {
         scroll.getViewport().setOpaque(false);
         scroll.setPreferredSize(new Dimension(0, 420));
         add(scroll, BorderLayout.SOUTH);
-    }
-
-    private void estilizarCalendario(JDateChooser dc) {
-        for (Component c : dc.getComponents()) {
-            if (c instanceof JButton btn) {
-                btn.setBackground(AppColors.PRIMARY);
-                btn.setForeground(Color.WHITE);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setOpaque(true);
-                btn.setText("📅");
-                btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
-            }
-        }
     }
 
     private JPanel legendItem(String label, Color bg, Color fg) {

@@ -7,7 +7,6 @@ import com.toedter.calendar.JDateChooser;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -93,12 +92,9 @@ public class ReservationFormDialog extends JDialog {
         cmbRecurso = UIFactory.comboBox();
         recursos.forEach(cmbRecurso::addItem);
 
-        dateChooser = new JDateChooser();
+        dateChooser = UIFactory.dateChooser();
         dateChooser.setDate(new Date());
-        dateChooser.setDateFormatString("dd/MM/yyyy");
-        dateChooser.setFont(UIFactory.FONT_BODY);
         dateChooser.setMinSelectableDate(new Date());
-        estilizarCalendario(dateChooser);
 
         cmbFranja = UIFactory.comboBox();
         franjas.forEach(cmbFranja::addItem);
@@ -112,13 +108,13 @@ public class ReservationFormDialog extends JDialog {
         addFormRow(form, gbc, row++, "Franja horaria", cmbFranja);
         addFormRow(form, gbc, row++, "Motivo (opcional)", UIFactory.textArea(txtMotivo));
 
-        gbc.gridy  = row++;
+        gbc.gridy  = row * 2;
         gbc.insets = new Insets(16, 0, 4, 0);
         JButton btnComprobar = UIFactory.secondaryButton("Comprobar disponibilidad");
         btnComprobar.addActionListener(e -> comprobarDisponibilidad());
         form.add(btnComprobar, gbc);
 
-        gbc.gridy  = row;
+        gbc.gridy  = row * 2 + 1;
         gbc.insets = new Insets(4, 0, 0, 0);
         lblDisponibilidad = new JLabel(" ");
         lblDisponibilidad.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -148,20 +144,6 @@ public class ReservationFormDialog extends JDialog {
         gbc.gridy  = row * 2 + 1;
         gbc.insets = new Insets(0, 0, 0, 0);
         form.add(field, gbc);
-    }
-
-    private void estilizarCalendario(JDateChooser dc) {
-        for (Component c : dc.getComponents()) {
-            if (c instanceof JButton btn) {
-                btn.setBackground(AppColors.PRIMARY);
-                btn.setForeground(Color.WHITE);
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(false);
-                btn.setOpaque(true);
-                btn.setText("📅");
-                btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
-            }
-        }
     }
 
     private void rellenarDatos() {
